@@ -63,6 +63,8 @@ parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
                     help='2D conv kernel size, encoder [3]')
 parser.add_argument('--conv-blocks', dest='conv_blocks', type=int, default=5,
                     help='conv+actfx+pool blocks [5]')
+parser.add_argument('--model-name', dest='model_name', type=str, 
+                    default='Linear_AE', help='name of model')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments')
@@ -82,8 +84,8 @@ def run_code():
         torch.cuda.empty_cache()
     # Load Data #
     if args.data == 'PPD':
-        dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
-                                      img_norm=True)
+        dataset = ProtoPlanetaryDisks(machine=args.machine, transform=False,
+                                      img_norm=True, subsample=True)
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
@@ -112,10 +114,40 @@ def run_code():
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
     # different types of AE models are stored in src/ae_model.py
-    print(dataset.img_dim, dataset.img_channels)
-    model = Linear_AE(latent_dim=args.latent_dim,
+    if args.model_name == 'ConvUpSamp_AE':
+        model = ConvUpSamp_AE(latent_dim=args.latent_dim,
+                              img_dim=dataset.img_dim,
+                              in_ch=dataset.img_channels)
+
+    elif args.model_name == 'ResNet_UpSamp_AE':
+        model = ResNet_UpSamp_AE(latent_dim=args.latent_dim,
+                                 img_dim=dataset.img_dim,
+                                 in_ch=dataset.img_channels)
+
+    elif args.model_name == 'ResNet_Linear_AE':
+        model = ResNet_Linear_AE(latent_dim=args.latent_dim,
+                                 img_dim=dataset.img_dim,
+                                 in_ch=dataset.img_channels)
+    elif args.model_name == 'ResNet_Tconv_AE':
+        model = ResNet_Tconv_AE(latent_dim=args.latent_dim,
+                                img_dim=dataset.img_dim,
+                                in_ch=dataset.img_channels)
+
+    elif args.model_name == 'ConvLin_AE':
+        model = ConvLin_AE(latent_dim=args.latent_dim,
+                           img_dim=dataset.img_dim,
+                           in_ch=dataset.img_channels)
+
+    elif args.model_name == 'TranConv_AE':
+        model = TranConv_AE(latent_dim=args.latent_dim,
                             img_dim=dataset.img_dim,
                             in_ch=dataset.img_channels)
+
+    elif args.model_name == 'Linear_AE':
+        model = Linear_AE(latent_dim=args.latent_dim,
+                          img_dim=dataset.img_dim,
+                          in_ch=dataset.img_channels)
+    
     # log model architecture and gradients to wandb
     wandb.watch(model, log='gradients')
 
