@@ -8,7 +8,7 @@ import torchvision
 
 root = os.getcwd()
 colab_root = '/content/drive/My Drive/PPDAE'
-exalearn_root = '/home/jorgemarpa/data/imgs/PPD'
+exalearn_root = '/home/jorgemarpa/data/imgs'
 
 
 class MyRotationTransform:
@@ -107,7 +107,7 @@ class ProtoPlanetaryDisks(Dataset):
         elif machine == 'colab':
             ppd_path = '%s/' % (colab_root)
         elif machine == 'exalearn':
-            ppd_path = '%s/' % (exalearn_root)
+            ppd_path = '%s/PPD/' % (exalearn_root)
         else:
             raise('Wrong host, please select local, colab or exalearn')
 
@@ -120,11 +120,14 @@ class ProtoPlanetaryDisks(Dataset):
             self.imgs = np.load('%s/img_array.npy' % (ppd_path))
             self.imgs = np.expand_dims(self.imgs, axis=1)
         else:
-            self.imgs = np.load('%s/img_norm_array.npy' % (ppd_path))
+            self.imgs = np.load('%s/img_stand_array.npy' % (ppd_path))
         self.imgs = self.imgs.astype(np.float32)
 
         if subsample:
-            idx = np.random.randint(0, self.meta.shape[0], 1000)
+            idx = np.where((self.meta[:,0] == 0.001) & 
+                           (self.meta[:,1] == 300) &
+                           (self.meta[:,2] == 1.3) &
+                           (self.meta[:,3] == 20))[0]
             self.imgs = self.imgs[idx]
             self.meta = self.meta[idx]
         self.img_dim = self.imgs[0].shape[-1]
