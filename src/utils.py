@@ -29,7 +29,7 @@ import matplotlib.cm as cm
 path = os.path.dirname(os.getcwd())
 
 
-def plot_recon_wall(xhat, x, epoch=0):
+def plot_recon_wall(xhat, x, epoch=0, log=False):
     """Light-curves wall plot, function used during VAE training phase.
     Figure designed and ready to be appended to W&B logger.
 
@@ -53,14 +53,24 @@ def plot_recon_wall(xhat, x, epoch=0):
     plt.close('all')
     ncols = 10
     fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
+    v_min = np.min([np.min(x), np.min(xhat)])
+    v_max = np.max([np.max(x), np.max(xhat)])
+    if log:
+        norm = colors.LogNorm(vmin=v_min, vmax=v_max)
+    else:
+        norme = None
+    
     for i in range(ncols):
         axis[0, i].imshow(x[i, 0, :, :], interpolation='bilinear',
-                          cmap=cm.gray, origin='upper', aspect='equal')
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                         vmin=v_min, vmax=v_max, norm=norm)
         axis[1, i].imshow(xhat[i, 0, :, :], interpolation='bilinear',
-                          cmap=cm.gray, origin='upper', aspect='equal')
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                         vmin=v_min, vmax=v_max, norm=norm)
         axis[2, i].imshow(x[i, 0, :, :] - xhat[i, 0, :, :],
                           interpolation='bilinear',
-                          cmap=cm.gray, origin='upper', aspect='equal')
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                         vmin=v_min, vmax=v_max, norm=norm)
 
     for ax in axis.ravel():
         ax.axes.get_xaxis().set_visible(False)
