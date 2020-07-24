@@ -128,7 +128,7 @@ class Linear_AE(nn.Module):
             nn.Dropout(dropout),
             nn.ReLU(),
             nn.Linear(320, self.img_size),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
     def encode(self, x):
@@ -243,7 +243,7 @@ class TranConv_AE(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2),       # (N, 6, 10, 10)->(N,  6, 5, 5)
             nn.Conv2d(6, 6, kernel_size=3),  # (N, 6, 5, 5)  ->(N,  6, 3, 3)
-            nn.ReLU(),
+            #nn.ReLU(),
             #nn.AvgPool2d(2, stride=2),       # (N, 6, 4, 4)  ->(N,  6, 2, 2)
         )
 
@@ -255,7 +255,7 @@ class TranConv_AE(nn.Module):
             nn.ConvTranspose2d(3, 3, kernel_size=2, stride=2),
             nn.ReLU(),
             nn.ConvTranspose2d(3, 1, kernel_size=2, stride=2),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
     def encode(self, x):
@@ -404,7 +404,7 @@ class ConvLin_AE(nn.Module):
             nn.Dropout(dropout),
             nn.ReLU(),
             nn.Linear(320, self.img_size),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
     def encode(self, x):
@@ -586,7 +586,7 @@ class ResNet_Tconv_AE(nn.Module):
                                kernel_size=3, stride=2,
                                padding=0),
             nn.BatchNorm2d(in_ch, momentum=0.01),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
     def encode(self, x):
@@ -742,7 +742,7 @@ class ResNet_Linear_AE(nn.Module):
             nn.BatchNorm1d(4 * 96 * 96),
             nn.ReLU(),
             nn.Linear(4 * 96 * 96, in_ch * self.img_width * self.img_height),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
 
@@ -912,7 +912,7 @@ class ResNet_UpSamp_AE(nn.Module):
             nn.Conv2d(8, 4, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Conv2d(4, in_ch, kernel_size=3, stride=1),
-            nn.Sigmoid(),
+            #nn.Tanh(),
         )
         
         
@@ -1087,10 +1087,10 @@ class ConvUpSamp_AE(nn.Module):
             nn.Conv2d(8, 8, kernel_size=1, stride=1),
             nn.ReLU(),
             nn.Upsample(scale_factor= 2, mode='bilinear'),
-            nn.Conv2d(8, 4, kernel_size=3, stride=1),
+            nn.Conv2d(8, 4, kernel_size=1, stride=1),
             nn.ReLU(),
             nn.Conv2d(4, in_ch, kernel_size=3, stride=1),
-            nn.Sigmoid()
+            #nn.Tanh()
         )
 
 
