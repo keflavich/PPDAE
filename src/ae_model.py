@@ -404,7 +404,7 @@ class ConvLin_AE(nn.Module):
             nn.Dropout(dropout),
             nn.ReLU(),
             nn.Linear(320, self.img_size),
-            #nn.Tanh()
+            nn.Sigmoid()
         )
 
     def encode(self, x):
@@ -1147,4 +1147,377 @@ class ConvUpSamp_AE(nn.Module):
         z = self.encode(x)
         xhat = self.decode(z)
 
+        return xhat, z
+    
+    
+    
+class ConvLinUp_AE(nn.Module):
+    """
+    Autoencoder class with user defined latent dimension, image size, 
+    and number of image channels. The encoder is constructed with
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    with a final linear layer to return the latent code.
+    The decoder is build using Linear layers.
+    
+    ...
+    
+    Attributes
+    ----------
+    latent_dim : int
+        size of latent space
+    img_width  : int
+        width size of image
+    img_height : int
+        height size of image
+    img_size   : float
+        total numer of pixels in image
+    in_ch      : int
+        number of image channels
+    enc_conv_blocks   : pytorch sequential
+        encoder layers organized in a sequential module
+    enc_linear : pytorch sequential
+        encoder linear output layer
+    dec_linear  : pytorch sequential
+        decoder layers organized in a sequential module
+    Methods
+    -------
+    encoder(self, x)
+        Encoder module
+    decoder(self, z)
+        Decoder module
+    forward(self, x)
+        AE forward pass
+    """
+    def __init__(self, latent_dim=32, img_dim=28, dropout=.2, in_ch=1,
+                 kernel=3, n_conv_blocks=5):
+        """
+        Parameters
+        ----------
+        latent_dim : int
+            size of the dimensilatent space
+        img_dim    : int
+            image size, only one dimension, assuming square ratio.
+        dropout    : float
+            dropout probability
+        in_ch      : int
+            number of channels in input/output image
+        kernel     : int
+            size of the convolving kernel
+        n_conv_blocks : int
+            number of [conv + relu + maxpooling] blocks
+        """
+        super(ConvLinUp_AE, self).__init__()
+        self.latent_dim = latent_dim
+        self.img_width = self.img_height = img_dim
+        self.img_size = self.img_width * self.img_height
+        self.in_ch = in_ch
+
+        # Encoder specification
+        self.enc_conv_blocks = nn.Sequential()
+        h_ch = in_ch
+        for i in range(n_conv_blocks):
+            self.enc_conv_blocks.add_module('conv2d_%i' % (i+1),
+                                            nn.Conv2d(h_ch, h_ch*2,
+                                                      kernel_size=kernel))
+            self.enc_conv_blocks.add_module('relu_%i' % (i+1), nn.ReLU())
+            self.enc_conv_blocks.add_module('maxpool_%i' % (i+1),
+                                            nn.MaxPool2d(2, stride=2))
+            h_ch *= 2
+            img_dim = conv_out(img_dim, kernel, 1)
+            img_dim = pool_out(img_dim, 2, 2)
+
+        self.enc_linear = nn.Sequential(
+            nn.Linear(h_ch * img_dim**2, 48),
+            nn.ReLU(),
+            nn.Linear(48, self.latent_dim),
+        )
+
+        # Decoder specification
+        self.dec_linear = nn.Sequential(
+            nn.Linear(self.latent_dim, 48),
+            nn.Dropout(dropout),
+            nn.ReLU(),
+            nn.Linear(48, 8 * 4 * 4),
+            nn.Dropout(dropout),
+            nn.ReLU(),
+            nn.Linear(8 * 4 * 4, 8 * 8 * 8),
+            nn.Dropout(dropout),
+            nn.ReLU(),
+            nn.Linear(8 * 8 * 8, 8 * 14 * 14),
+            nn.Dropout(dropout),
+            nn.ReLU()
+        )
+        
+        self.dec_upscaleconv = nn.Sequential(
+            nn.Upsample(scale_factor= 2, mode='bilinear'),
+            nn.Conv2d(8, 8, kernel_size=3, stride=1),
+            nn.ReLU(),
+            #nn.Conv2d(8, 8, kernel_size=1, stride=1),
+            #nn.ReLU(),
+            nn.Upsample(scale_factor= 2, mode='bilinear'),
+            nn.Conv2d(8, 4, kernel_size=3, stride=1),
+            nn.ReLU(),
+            #nn.Conv2d(4, 4, kernel_size=1, stride=1),
+            #nn.ReLU(),
+            nn.Upsample(scale_factor= 2, mode='bilinear'),
+            nn.Conv2d(4, 4, kernel_size=3, stride=1),
+            nn.ReLU(),
+            #nn.Conv2d(4, in_ch, kernel_size=1, stride=1),
+            #nn.ReLU(),
+            nn.Upsample(scale_factor= 2, mode='bilinear'),
+            #nn.Conv2d(4, 4, kernel_size=3, stride=1),
+            #nn.ReLU(),
+            nn.Conv2d(4, in_ch, kernel_size=1, stride=1),
+            nn.Sigmoid()
+        )
+
+    def encode(self, x):
+        """
+        Encoder side of autoencoder.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+            latent code
+        """
+        x = self.enc_conv_blocks(x)
+        x = self.enc_linear(x.flatten(1))
+        return x
+
+    def decode(self, z):
+        """
+        Decoder side of autoencoder.
+        
+        Parameters
+        ----------
+        z : tensor
+            latent code [N, latent_dim]
+        Returns
+        -------
+            reconstructed image [N, C, H, W]
+        """
+        z = self.dec_linear(z).view(-1, 8, 14, 14)
+        z = self.dec_upscaleconv(z)
+        z = F.interpolate(z, size=(self.img_width, self.img_height),
+                          mode='bilinear')
+        return z
+
+    def forward(self, x):
+        """
+        Autoencoder forward pass.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+        xhat : tensor
+            reconstructe image [N, C, H, W]
+        z    : tensor
+            latent code [N, latent_dim]
+        """
+        z = self.encode(x)
+        xhat = self.decode(z)
+        return xhat, z
+    
+    
+class ConvLinTrans_AE(nn.Module):
+    """
+    Autoencoder class with user defined latent dimension, image size, 
+    and number of image channels. The encoder is constructed with
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    with a final linear layer to return the latent code.
+    The decoder is build using Linear layers.
+    
+    ...
+    
+    Attributes
+    ----------
+    latent_dim : int
+        size of latent space
+    img_width  : int
+        width size of image
+    img_height : int
+        height size of image
+    img_size   : float
+        total numer of pixels in image
+    in_ch      : int
+        number of image channels
+    enc_conv_blocks   : pytorch sequential
+        encoder layers organized in a sequential module
+    enc_linear : pytorch sequential
+        encoder linear output layer
+    dec_linear  : pytorch sequential
+        decoder layers organized in a sequential module
+    Methods
+    -------
+    encoder(self, x)
+        Encoder module
+    decoder(self, z)
+        Decoder module
+    forward(self, x)
+        AE forward pass
+    """
+    def __init__(self, latent_dim=32, img_dim=28, dropout=.2, in_ch=1,
+                 kernel=3, n_conv_blocks=5):
+        """
+        Parameters
+        ----------
+        latent_dim : int
+            size of the dimensilatent space
+        img_dim    : int
+            image size, only one dimension, assuming square ratio.
+        dropout    : float
+            dropout probability
+        in_ch      : int
+            number of channels in input/output image
+        kernel     : int
+            size of the convolving kernel
+        n_conv_blocks : int
+            number of [conv + relu + maxpooling] blocks
+        """
+        super(ConvLinTrans_AE, self).__init__()
+        self.latent_dim = latent_dim
+        self.img_width = self.img_height = img_dim
+        self.img_size = self.img_width * self.img_height
+        self.in_ch = in_ch
+
+        # Encoder specification
+        self.enc_conv_blocks = nn.Sequential()
+        h_ch = in_ch
+        for i in range(n_conv_blocks):
+            self.enc_conv_blocks.add_module('conv2d_%i1' % (i+1),
+                                            nn.Conv2d(h_ch, h_ch*2,
+                                                      kernel_size=kernel))
+            self.enc_conv_blocks.add_module('bn_%i1' % (i+1), 
+                                            nn.BatchNorm2d(h_ch*2, momentum=0.005))
+            self.enc_conv_blocks.add_module('relu_%i1' % (i+1), 
+                                            nn.ReLU())
+            self.enc_conv_blocks.add_module('conv2d_%i2' % (i+1),
+                                            nn.Conv2d(h_ch*2, h_ch*2,
+                                                      kernel_size=kernel))
+            self.enc_conv_blocks.add_module('bn_%i2' % (i+1), 
+                                            nn.BatchNorm2d(h_ch*2, momentum=0.005))
+            self.enc_conv_blocks.add_module('relu_%i2' % (i+1), 
+                                            nn.ReLU())
+            self.enc_conv_blocks.add_module('maxpool_%i' % (i+1),
+                                            nn.MaxPool2d(2, stride=2))
+            h_ch *= 2
+            img_dim = conv_out(img_dim, kernel, 1)
+            img_dim = conv_out(img_dim, kernel, 1)
+            img_dim = pool_out(img_dim, 2, 2)
+
+        self.enc_linear = nn.Sequential(
+            nn.Linear(h_ch * img_dim**2, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Linear(128, self.latent_dim),
+        )
+
+        # Decoder specification
+        self.dec_linear = nn.Sequential(
+            nn.Linear(self.latent_dim, 48),
+            nn.BatchNorm1d(48),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(48, 8 * 4 * 4),
+            nn.BatchNorm1d(8 * 4 * 4),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(8 * 4 * 4, 8 * 8 * 8),
+            nn.BatchNorm1d(8 * 8 * 8),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(8 * 8 * 8, 8 * 15 * 15),
+            nn.BatchNorm1d(8 * 15 * 15),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        )
+        
+        self.dec_transconv = nn.Sequential(
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=0),
+            nn.Conv2d(8, 8, 3),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(8, 8, 3),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(8, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, in_ch, 3),
+            nn.Sigmoid()
+        )
+
+    def encode(self, x):
+        """
+        Encoder side of autoencoder.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+            latent code
+        """
+        x = self.enc_conv_blocks(x)
+        x = self.enc_linear(x.flatten(1))
+        return x
+
+    def decode(self, z):
+        """
+        Decoder side of autoencoder.
+        
+        Parameters
+        ----------
+        z : tensor
+            latent code [N, latent_dim]
+        Returns
+        -------
+            reconstructed image [N, C, H, W]
+        """
+        z = self.dec_linear(z).view(-1, 8, 15, 15)
+        z = self.dec_transconv(z)
+        
+        z = F.interpolate(z, size=(self.img_width, self.img_height),
+                          mode='bilinear')
+        return z
+
+    def forward(self, x):
+        """
+        Autoencoder forward pass.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+        xhat : tensor
+            reconstructe image [N, C, H, W]
+        z    : tensor
+            latent code [N, latent_dim]
+        """
+        z = self.encode(x)
+        xhat = self.decode(z)
         return xhat, z

@@ -85,7 +85,7 @@ def run_code():
     # Load Data #
     if args.data == 'PPD':
         dataset = ProtoPlanetaryDisks(machine=args.machine, transform=False,
-                                      img_norm=True, subsample=True)
+                                      img_norm=True, subsample=False)
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
@@ -147,6 +147,20 @@ def run_code():
         model = Linear_AE(latent_dim=args.latent_dim,
                           img_dim=dataset.img_dim,
                           in_ch=dataset.img_channels)
+        
+    elif args.model_name == 'ConvLinUp_AE':
+        model = ConvLinUp_AE(latent_dim=args.latent_dim,
+                             img_dim=dataset.img_dim,
+                             in_ch=dataset.img_channels,
+                             kernel=args.kernel_size,
+                             n_conv_blocks=args.conv_blocks)
+    
+    elif args.model_name == 'ConvLinTrans_AE':
+        model = ConvLinTrans_AE(latent_dim=args.latent_dim,
+                                img_dim=dataset.img_dim,
+                                in_ch=dataset.img_channels,
+                                kernel=args.kernel_size,
+                                n_conv_blocks=args.conv_blocks)
     
     # log model architecture and gradients to wandb
     wandb.watch(model, log='gradients')
