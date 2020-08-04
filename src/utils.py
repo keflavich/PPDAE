@@ -23,13 +23,14 @@ import matplotlib
 if socket.gethostname() == 'exalearn':
     matplotlib.use('agg')
 import matplotlib.pyplot as plt
-import seaborn as sb
 import matplotlib.cm as cm
+import matplotlib.colors as colors
+import seaborn as sb
 
 path = os.path.dirname(os.getcwd())
 
 
-def plot_recon_wall(xhat, x, epoch=0, log=False):
+def plot_recon_wall(xhat, x, epoch=0, log=True):
     """Light-curves wall plot, function used during VAE training phase.
     Figure designed and ready to be appended to W&B logger.
 
@@ -53,24 +54,27 @@ def plot_recon_wall(xhat, x, epoch=0, log=False):
     plt.close('all')
     ncols = 10
     fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
-    v_min = np.min([np.min(x), np.min(xhat)])
-    v_max = np.max([np.max(x), np.max(xhat)])
+    v_min = np.min(x)
+    v_max = np.max(x)
     if log:
-        norm = colors.LogNorm(vmin=v_min, vmax=v_max)
+        # if imgs are stand then linthresh=1, linscale=100
+        # if imgs are [0,1] then linthresh=.0005, linscale=100
+        norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
+                                 vmin=v_min, vmax=v_max)
     else:
-        norme = None
+        norm = None
     
     for i in range(ncols):
         axis[0, i].imshow(x[i, 0, :, :], interpolation='bilinear',
                           cmap=cm.viridis, origin='upper', aspect='equal',
-                         vmin=v_min, vmax=v_max, norm=norm)
+                          norm=norm)
         axis[1, i].imshow(xhat[i, 0, :, :], interpolation='bilinear',
                           cmap=cm.viridis, origin='upper', aspect='equal',
-                         vmin=v_min, vmax=v_max, norm=norm)
+                          norm=norm)
         axis[2, i].imshow(x[i, 0, :, :] - xhat[i, 0, :, :],
                           interpolation='bilinear',
                           cmap=cm.viridis, origin='upper', aspect='equal',
-                         vmin=v_min, vmax=v_max, norm=norm)
+                          norm=norm)
 
     for ax in axis.ravel():
         ax.axes.get_xaxis().set_visible(False)
