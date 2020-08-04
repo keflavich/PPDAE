@@ -120,7 +120,7 @@ class ProtoPlanetaryDisks(Dataset):
             self.imgs = np.load('%s/img_array.npy' % (ppd_path))
             self.imgs = np.expand_dims(self.imgs, axis=1)
         else:
-            self.imgs = np.load('%s/img_stand_array.npy' % (ppd_path))
+            self.imgs = np.load('%s/img_norm_array.npy' % (ppd_path))
         self.imgs = self.imgs.astype(np.float32)
 
         if subsample:
