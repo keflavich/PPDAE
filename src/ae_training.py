@@ -78,6 +78,7 @@ class Trainer():
         self.num_steps = 0
         self.print_every = print_every
         self.mse_loss = nn.MSELoss(reduction='mean')
+        self.bce_loss = nn.BCELoss(reduction='mean')
         self.wb = wandb
 
     def _loss(self, x, xhat, train=True, ep=0):
@@ -98,7 +99,7 @@ class Trainer():
         loss
             loss value
         """
-        loss = self.mse_loss(xhat, x)
+        loss = self.bce_loss(xhat, x)
 
         if train:
             self.train_loss['Loss'].append(loss.item())
@@ -146,7 +147,7 @@ class Trainer():
                 x_plot = img.data.cpu().numpy()
 
         z_all = np.concatenate(z_all)
-        z_all = z_all[np.random.choice(z_all.shape[0], 1000,
+        z_all = z_all[np.random.choice(z_all.shape[0], 5000,
                                        replace=False), :]
 
         # plot reconstructed images ever 2 epochs
