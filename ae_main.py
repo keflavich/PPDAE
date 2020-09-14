@@ -84,7 +84,7 @@ def run_code():
         torch.cuda.empty_cache()
     # Load Data #
     if args.data == 'PPD':
-        dataset = ProtoPlanetaryDisks(machine=args.machine, transform=False,
+        dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
                                       img_norm=True, subsample=False)
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
@@ -161,6 +161,11 @@ def run_code():
                                 in_ch=dataset.img_channels,
                                 kernel=args.kernel_size,
                                 n_conv_blocks=args.conv_blocks)
+        
+    elif args.model_name == 'ResLinTrans_AE':
+        model = ResLinTrans_AE(latent_dim=args.latent_dim,
+                               img_dim=dataset.img_dim,
+                               in_ch=dataset.img_channels)
     
     # log model architecture and gradients to wandb
     wandb.watch(model, log='gradients')
@@ -177,7 +182,7 @@ def run_code():
     # Learning Rate scheduler
     if args.lr_sch == 'step':
         scheduler = optim.lr_scheduler.StepLR(optimizer,
-                                              step_size=20,
+                                              step_size=25,
                                               gamma=0.5)
     elif args.lr_sch == 'exp':
         scheduler = optim.lr_scheduler.ExponentialLR(optimizer,
