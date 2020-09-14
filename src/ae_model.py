@@ -1521,3 +1521,191 @@ class ConvLinTrans_AE(nn.Module):
         z = self.encode(x)
         xhat = self.decode(z)
         return xhat, z
+    
+    
+    
+class ResLinTrans_AE(nn.Module):
+    """
+    Autoencoder class with user defined latent dimension, image size, 
+    and number of image channels. The encoder is constructed with
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    with a final linear layer to return the latent code.
+    The decoder is build using Linear layers.
+    
+    ...
+    
+    Attributes
+    ----------
+    latent_dim : int
+        size of latent space
+    img_width  : int
+        width size of image
+    img_height : int
+        height size of image
+    img_size   : float
+        total numer of pixels in image
+    in_ch      : int
+        number of image channels
+    enc_conv_blocks   : pytorch sequential
+        encoder layers organized in a sequential module
+    enc_linear : pytorch sequential
+        encoder linear output layer
+    dec_linear  : pytorch sequential
+        decoder layers organized in a sequential module
+    Methods
+    -------
+    encoder(self, x)
+        Encoder module
+    decoder(self, z)
+        Decoder module
+    forward(self, x)
+        AE forward pass
+    """
+    def __init__(self, latent_dim=32, img_dim=28, dropout=.2, in_ch=1):
+        """
+        Parameters
+        ----------
+        latent_dim : int
+            size of the dimensilatent space
+        img_dim    : int
+            image size, only one dimension, assuming square ratio.
+        dropout    : float
+            dropout probability
+        in_ch      : int
+            number of channels in input/output image
+        kernel     : int
+            size of the convolving kernel
+        n_conv_blocks : int
+            number of [conv + relu + maxpooling] blocks
+        """
+        super(ResLinTrans_AE, self).__init__()
+        self.latent_dim = latent_dim
+        self.img_width = self.img_height = img_dim
+        self.img_size = self.img_width * self.img_height
+        self.in_ch = in_ch
+        
+        # ENCODER modules
+        # ResNet model from pytorch library, pretrained can be changes
+        # to False if training from scratch
+        resnet = models.resnet18(pretrained=True)
+        # delete the last fc layer and replace it with a custom fc layer.
+        modules = list(resnet.children())[:-1]      
+        # add 1 cnv layer if input channels are different than 3
+        if in_ch != 3:
+            first_conv_layer = [nn.Conv2d(in_ch, 3, kernel_size=1,
+                                          stride=1, padding=0, bias=True)]
+            first_conv_layer.extend(modules)
+            modules = first_conv_layer
+            del first_conv_layer
+        # Cutom linear + batch normalization layer
+        self.resnet = nn.Sequential(*modules)
+        self.enc_linear = nn.Sequential(
+            nn.Linear(resnet.fc.in_features, 128),
+            nn.BatchNorm1d(128, momentum=0.01),
+            nn.ReLU(),
+            nn.Linear(128, self.latent_dim)
+        )
+
+        # Decoder specification
+        self.dec_linear = nn.Sequential(
+            nn.Linear(self.latent_dim, 48),
+            nn.BatchNorm1d(48),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(48, 8 * 4 * 4),
+            nn.BatchNorm1d(8 * 4 * 4),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(8 * 4 * 4, 8 * 8 * 8),
+            nn.BatchNorm1d(8 * 8 * 8),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(8 * 8 * 8, 8 * 15 * 15),
+            nn.BatchNorm1d(8 * 15 * 15),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        )
+        
+        self.dec_transconv = nn.Sequential(
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=0),
+            nn.Conv2d(8, 8, 3),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(8, 8, 3),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(8, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
+            nn.Conv2d(4, 4, 3),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, in_ch, 3),
+            nn.Sigmoid()
+        )
+
+    def encode(self, x):
+        """
+        Encoder side of autoencoder.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+            latent code
+        """
+        x = self.resnet(x)
+        x = self.enc_linear(x.flatten(1))
+        return x
+
+    def decode(self, z):
+        """
+        Decoder side of autoencoder.
+        
+        Parameters
+        ----------
+        z : tensor
+            latent code [N, latent_dim]
+        Returns
+        -------
+            reconstructed image [N, C, H, W]
+        """
+        z = self.dec_linear(z).view(-1, 8, 15, 15)
+        z = self.dec_transconv(z)
+        
+        z = F.interpolate(z, size=(self.img_width, self.img_height),
+                          mode='bilinear')
+        return z
+
+    def forward(self, x):
+        """
+        Autoencoder forward pass.
+        
+        Parameters
+        ----------
+        x : tensor
+            input image with shape [N, C, H, W]
+        Returns
+        -------
+        xhat : tensor
+            reconstructe image [N, C, H, W]
+        z    : tensor
+            latent code [N, latent_dim]
+        """
+        z = self.encode(x)
+        xhat = self.decode(z)
+        return xhat, z
