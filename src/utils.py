@@ -54,17 +54,18 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
     plt.close('all')
     ncols = 10
     fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
-    v_min = np.min(x)
-    v_max = np.max(x)
-    if log:
-        # if imgs are stand then linthresh=1, linscale=100
-        # if imgs are [0,1] then linthresh=.0005, linscale=100
-        norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
-                                 vmin=v_min, vmax=v_max)
-    else:
-        norm = None
     
     for i in range(ncols):
+        v_min = np.min(x[i, 0, :, :])
+        v_max = np.max(x[i, 0, :, :])
+        if log:
+            # if imgs are stand then linthresh=1, linscale=100
+            # if imgs are [0,1] then linthresh=.0005, linscale=100
+            norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
+                                     vmin=v_min, vmax=v_max)
+        else:
+            norm = None
+        
         axis[0, i].imshow(x[i, 0, :, :], interpolation='bilinear',
                           cmap=cm.viridis, origin='upper', aspect='equal',
                           norm=norm)
