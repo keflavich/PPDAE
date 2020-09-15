@@ -7,7 +7,7 @@ import torchvision
 # from sklearn import preprocessing
 
 root = os.getcwd()
-colab_root = '/content/drive/My Drive/PPDAE'
+colab_root = '/content/drive/My Drive'
 exalearn_root = '/home/jorgemarpa/data/imgs'
 
 
@@ -105,7 +105,7 @@ class ProtoPlanetaryDisks(Dataset):
         if machine == 'local':
             ppd_path = '%s/data/PPD' % (root)
         elif machine == 'colab':
-            ppd_path = '%s/' % (colab_root)
+            ppd_path = '%s/PPDAE' % (colab_root)
         elif machine == 'exalearn':
             ppd_path = '%s/PPD/' % (exalearn_root)
         else:
