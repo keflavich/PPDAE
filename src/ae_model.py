@@ -535,7 +535,7 @@ class ResNet_Tconv_AE(nn.Module):
         # Cutom linear + batch normalization layer
         self.resnet = nn.Sequential(*modules)
         self.enc_linear = nn.Sequential(
-            nn.Linear(resnet.fc.in_features, 64),
+            nn.Linear(resnet.fc.in_features, 64, bias=False),
             nn.BatchNorm1d(64, momentum=0.01),
             nn.ReLU(),
             nn.Linear(64, self.latent_dim)
@@ -544,10 +544,10 @@ class ResNet_Tconv_AE(nn.Module):
         # DECODER modules
         # expand latent code into a 2d image with 64 channels
         self.dec_expand = nn.Sequential(
-            nn.Linear(self.latent_dim, 64),
+            nn.Linear(self.latent_dim, 64, bias=False),
             nn.BatchNorm1d(64),
             nn.ReLU(),
-            nn.Linear(64, 64 * 4 * 4),
+            nn.Linear(64, 64 * 4 * 4, bias=False),
             nn.BatchNorm1d(64 * 4 * 4),
             nn.ReLU()
         )
@@ -556,14 +556,14 @@ class ResNet_Tconv_AE(nn.Module):
         self.dec_convTrans6 = nn.Sequential(
             nn.ConvTranspose2d(in_channels=64, out_channels=32,
                                kernel_size=3, stride=2,
-                               padding=0),
+                               padding=0, bias=False),
             nn.BatchNorm2d(32, momentum=0.01),
             nn.ReLU(inplace=True),
         )
         self.dec_convTrans7 = nn.Sequential(
             nn.ConvTranspose2d(in_channels=32, out_channels=8,
                                kernel_size=3, stride=2,
-                               padding=0),
+                               padding=0, bias=False),
             nn.BatchNorm2d(8, momentum=0.01),
             nn.ReLU(inplace=True),
         )
@@ -585,8 +585,7 @@ class ResNet_Tconv_AE(nn.Module):
             nn.ConvTranspose2d(in_channels=8, out_channels=in_ch,
                                kernel_size=3, stride=2,
                                padding=0),
-            nn.BatchNorm2d(in_ch, momentum=0.01),
-            #nn.Tanh()
+            nn.Sigmoid()
         )
 
     def encode(self, x):
@@ -721,7 +720,7 @@ class ResNet_Linear_AE(nn.Module):
         # Cutom linear + batch normalization layer
         self.resnet = nn.Sequential(*modules)
         self.enc_linear = nn.Sequential(
-            nn.Linear(resnet.fc.in_features, 64),
+            nn.Linear(resnet.fc.in_features, 64, bias=False),
             nn.BatchNorm1d(64, momentum=0.01),
             nn.ReLU(),
             nn.Linear(64, self.latent_dim)
@@ -729,16 +728,16 @@ class ResNet_Linear_AE(nn.Module):
 
         # DECODER modules
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim, 128),
+            nn.Linear(self.latent_dim, 128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
-            nn.Linear(128, 32 * 4 * 4),
+            nn.Linear(128, 32 * 4 * 4, bias=False),
             nn.BatchNorm1d(32 * 4 * 4),
             nn.ReLU(),
-            nn.Linear(32 * 4 * 4, 16 * 16 * 16),
+            nn.Linear(32 * 4 * 4, 16 * 16 * 16, bias=False),
             nn.BatchNorm1d(16 * 16 * 16),
             nn.ReLU(),
-            nn.Linear(16 * 16 * 16, 4 * 96 * 96),
+            nn.Linear(16 * 16 * 16, 4 * 96 * 96, bias=False),
             nn.BatchNorm1d(4 * 96 * 96),
             nn.ReLU(),
             nn.Linear(4 * 96 * 96, in_ch * self.img_width * self.img_height),
@@ -876,7 +875,7 @@ class ResNet_UpSamp_AE(nn.Module):
         # Cutom linear + batch normalization layer
         self.resnet = nn.Sequential(*modules)
         self.enc_linear = nn.Sequential(
-            nn.Linear(resnet.fc.in_features, 64),
+            nn.Linear(resnet.fc.in_features, 64, bias=False),
             nn.BatchNorm1d(64, momentum=0.01),
             nn.ReLU(),
             nn.Linear(64, self.latent_dim)
@@ -1392,14 +1391,14 @@ class ConvLinTrans_AE(nn.Module):
         for i in range(n_conv_blocks):
             self.enc_conv_blocks.add_module('conv2d_%i1' % (i+1),
                                             nn.Conv2d(h_ch, h_ch*2,
-                                                      kernel_size=kernel))
+                                                      kernel_size=kernel, bias=False))
             self.enc_conv_blocks.add_module('bn_%i1' % (i+1), 
                                             nn.BatchNorm2d(h_ch*2, momentum=0.005))
             self.enc_conv_blocks.add_module('relu_%i1' % (i+1), 
                                             nn.ReLU())
             self.enc_conv_blocks.add_module('conv2d_%i2' % (i+1),
                                             nn.Conv2d(h_ch*2, h_ch*2,
-                                                      kernel_size=kernel))
+                                                      kernel_size=kernel, bias=False))
             self.enc_conv_blocks.add_module('bn_%i2' % (i+1), 
                                             nn.BatchNorm2d(h_ch*2, momentum=0.005))
             self.enc_conv_blocks.add_module('relu_%i2' % (i+1), 
@@ -1412,7 +1411,7 @@ class ConvLinTrans_AE(nn.Module):
             img_dim = pool_out(img_dim, 2, 2)
 
         self.enc_linear = nn.Sequential(
-            nn.Linear(h_ch * img_dim**2, 128),
+            nn.Linear(h_ch * img_dim**2, 128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, self.latent_dim),
@@ -1420,48 +1419,46 @@ class ConvLinTrans_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim, 48),
-            nn.BatchNorm1d(48),
+            nn.Linear(self.latent_dim, 128, bias=False),
+            nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(48, 8 * 4 * 4),
-            nn.BatchNorm1d(8 * 4 * 4),
+            nn.Linear(128, 16 * 4 * 4, bias=False),
+            nn.BatchNorm1d(16 * 4 * 4),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(8 * 4 * 4, 8 * 8 * 8),
-            nn.BatchNorm1d(8 * 8 * 8),
+            nn.Linear(16 * 4 * 4, 16 * 8 * 8, bias=False),
+            nn.BatchNorm1d(16 * 8 * 8),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(8 * 8 * 8, 8 * 15 * 15),
-            nn.BatchNorm1d(8 * 15 * 15),
+            nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU(),
-            nn.Dropout(dropout),
         )
         
         self.dec_transconv = nn.Sequential(
-            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=0),
-            nn.Conv2d(8, 8, 3),
+            nn.ConvTranspose2d(16, 16, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(16, 16, 3, bias=False),
+            nn.BatchNorm2d(16, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(16, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(8, 8, 3),
+            nn.ConvTranspose2d(8, 8, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(8, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.Conv2d(8, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3),
+            nn.ConvTranspose2d(4, 4, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3),
-            nn.BatchNorm2d(4, momentum=0.005),
-            nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             nn.Conv2d(4, in_ch, 3),
@@ -1496,7 +1493,7 @@ class ConvLinTrans_AE(nn.Module):
         -------
             reconstructed image [N, C, H, W]
         """
-        z = self.dec_linear(z).view(-1, 8, 15, 15)
+        z = self.dec_linear(z).view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
         
         z = F.interpolate(z, size=(self.img_width, self.img_height),
@@ -1608,48 +1605,48 @@ class ResLinTrans_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim, 48),
+            nn.Linear(self.latent_dim, 48, bias=False),
             nn.BatchNorm1d(48),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(48, 8 * 4 * 4),
+            nn.Linear(48, 8 * 4 * 4, bias=False),
             nn.BatchNorm1d(8 * 4 * 4),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(8 * 4 * 4, 8 * 8 * 8),
+            nn.Linear(8 * 4 * 4, 8 * 8 * 8, bias=False),
             nn.BatchNorm1d(8 * 8 * 8),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(8 * 8 * 8, 8 * 15 * 15),
+            nn.Linear(8 * 8 * 8, 8 * 15 * 15, bias=False),
             nn.BatchNorm1d(8 * 15 * 15),
             nn.ReLU(),
             nn.Dropout(dropout),
         )
         
         self.dec_transconv = nn.Sequential(
-            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=0),
-            nn.Conv2d(8, 8, 3),
+            nn.ConvTranspose2d(8, 8, 3, stride=2, padding=0, bias=False),
+            #nn.Conv2d(8, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(8, 8, 3),
+            nn.Conv2d(8, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.ConvTranspose2d(8, 4, 3, stride=2, padding=0, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3),
+            nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3),
+            nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0),
-            nn.Conv2d(4, 4, 3),
+            nn.ConvTranspose2d(4, 4, 3, stride=2, padding=0, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             nn.Conv2d(4, in_ch, 3),
