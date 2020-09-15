@@ -111,7 +111,7 @@ class ProtoPlanetaryDisks(Dataset):
         else:
             raise('Wrong host, please select local, colab or exalearn')
 
-        self.meta = np.load('%s/param_arr.npy' % (ppd_path))
+        self.meta = np.load('%s/param_arr_gridandfiller1.npy' % (ppd_path))
         self.meta = self.meta.astype(np.float32)
         self.meta_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
@@ -120,7 +120,7 @@ class ProtoPlanetaryDisks(Dataset):
             self.imgs = np.load('%s/img_array.npy' % (ppd_path))
             self.imgs = np.expand_dims(self.imgs, axis=1)
         else:
-            self.imgs = np.load('%s/img_norm_array.npy' % (ppd_path))
+            self.imgs = np.load('%s/img_array_gridandfiller1_norm.npy' % (ppd_path))
         self.imgs = self.imgs.astype(np.float32)
 
         if subsample:
