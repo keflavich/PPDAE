@@ -15,7 +15,7 @@ import argparse
 import torch
 import torch.optim as optim
 import numpy as np
-from src.dataset import ProtoPlanetaryDisks, MNIST
+from src.dataset_large import ProtoPlanetaryDisks, MNIST
 from src.ae_model import *
 from src.ae_training import Trainer
 from src.utils import count_parameters
