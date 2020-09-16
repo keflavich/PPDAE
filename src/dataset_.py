@@ -113,11 +113,11 @@ class ProtoPlanetaryDisks(Dataset):
         else:
             raise('Wrong host, please select local, colab or exalearn')
             
-        self.par_paths = sorted(glob.glob('%s/param_arr_gridandfiller1_train_*.npy' %
+        self.par_paths = sorted(glob.glob('%s/param_arr_gridandfiller12_train_*.npy' %
                                   (ppd_path)))
         self.par_memmaps = [np.load(path, mmap_mode='r') for path in self.par_paths]
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller1_norm_train_*.npy' %
+        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller12_norm_train_*.npy' %
                                    (ppd_path)))
         self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
         self.start_indices = [0] * len(self.imgs_paths)
@@ -129,8 +129,8 @@ class ProtoPlanetaryDisks(Dataset):
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
-        self.par_test = np.load('%s/param_arr_gridandfiller1_test.npy' % (ppd_path))
-        self.imgs_test = np.load('%s/img_array_gridandfiller1_norm_test.npy' % (ppd_path))
+        self.par_test = np.load('%s/param_arr_gridandfiller12_test.npy' % (ppd_path))
+        self.imgs_test = np.load('%s/img_array_gridandfiller12_norm_test.npy' % (ppd_path))
 
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
