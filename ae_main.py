@@ -15,7 +15,7 @@ import argparse
 import torch
 import torch.optim as optim
 import numpy as np
-from src.dataset_large import ProtoPlanetaryDisks, MNIST
+from src.dataset_large import ProtoPlanetaryDisks
 from src.ae_model import *
 from src.ae_training import Trainer
 from src.utils import count_parameters
@@ -99,9 +99,9 @@ def run_code():
     print('Dataset size: ', len(dataset))
     
     # data loaders for training and testing
-    train_loader, test_loader = dataset.get_dataloader(batch_size=args.batch_size,
+    train_loader, val_loader = dataset.get_dataloader(batch_size=args.batch_size,
                                                        shuffle=True,
-                                                       test_split=.2,
+                                                       val_split=.2,
                                                        random_seed=rnd_seed)
 
     if args.data == 'PPD' and args.cond == 'T':
@@ -216,7 +216,7 @@ def run_code():
         return
 
     # run training/testing iterations
-    trainer.train(train_loader, test_loader, args.num_epochs,
+    trainer.train(train_loader, val_loader, args.num_epochs,
                   save=True, early_stop=args.early_stop)
 
 
