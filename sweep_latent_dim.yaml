@@ -1,0 +1,34 @@
+program: ae_main_phy.py
+method: grid
+metric:
+  name: Test_Loss
+  goal: minimize
+parameters:
+  machine:
+    value: 'exalearn'
+  data:
+    value: 'PPD'
+  lr:
+    value: 0.0005
+  lr_sch:
+    value: 'step'         
+  batch_size:
+    value: 128 
+  num_epochs:
+    value: 75
+  cond:
+    value: 'F'
+  feed_phy:
+    value: 'F'
+  latent_dim:
+    values: [4, 8, 12, 16, 24, 32, 48, 64]
+  dropout:
+    value: 0.2
+  kernel_size:
+    value: 3
+  conv_blocks:
+    value: 4
+  model_name:
+    value: 'ConvLinTrans_AE'            
+  comment:
+    value: 'latent_dim_sweep'
