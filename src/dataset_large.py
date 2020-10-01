@@ -89,7 +89,7 @@ class ProtoPlanetaryDisks(Dataset):
         return a dataloader object for trainning and testing
     """
     def __init__(self, machine='local', transform=True,
-                 subsample=False, img_norm=True):
+                 img_norm=True):
         """
         Parameters
         ----------
@@ -97,9 +97,6 @@ class ProtoPlanetaryDisks(Dataset):
             which machine is been used (colab, exalearn, [local])
         transform  : bool, optional
             if apply or not image transformation when getting new item
-        subsample  : bool, optional
-            wheather to subsample the entire dataset, for fastloading and
-            testing purposes
         img_norm   : bool, optional
             load images that are scaled to [0,1] when True, or raw images
             when False.
@@ -113,11 +110,11 @@ class ProtoPlanetaryDisks(Dataset):
         else:
             raise('Wrong host, please select local, colab or exalearn')
             
-        self.par_paths = sorted(glob.glob('%s/param_arr_gridandfiller12_train_*.npy' %
+        self.par_paths = sorted(glob.glob('%s/param_arr_gridandfiller123_train_*.npy' %
                                   (ppd_path)))
         self.par_memmaps = [np.load(path, mmap_mode='r') for path in self.par_paths]
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller12_norm_train_*.npy' %
+        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller123_norm_train_*.npy' %
                                    (ppd_path)))
         self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
         self.start_indices = [0] * len(self.imgs_paths)
@@ -129,8 +126,8 @@ class ProtoPlanetaryDisks(Dataset):
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
-        self.par_test = np.load('%s/param_arr_gridandfiller12_test.npy' % (ppd_path))
-        self.imgs_test = np.load('%s/img_array_gridandfiller12_norm_test.npy' % (ppd_path))
+        self.par_test = np.load('%s/param_arr_gridandfiller123_test.npy' % (ppd_path))
+        self.imgs_test = np.load('%s/img_array_gridandfiller123_norm_test.npy' % (ppd_path))
 
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
