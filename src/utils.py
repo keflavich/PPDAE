@@ -62,7 +62,7 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
             # if imgs are stand then linthresh=1, linscale=100
             # if imgs are [0,1] then linthresh=.0005, linscale=100
             norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
-                                     vmin=v_min, vmax=v_max)
+                                     vmin=v_min, vmax=v_max, base=10.)
         else:
             norm = None
         
@@ -158,8 +158,7 @@ def plot_latent_space(z, y=None):
                      hue='y' if y is not None else None,
                      hue_order=sorted(set(y)) if y is not None else None,
                      diag_kind="hist", markers=".", height=2,
-                     plot_kws=dict(s=30, edgecolors='face', alpha=.8),
-                     diag_kws=dict(histtype='step'))
+                     plot_kws=dict(s=30, edgecolors='face', alpha=.8))
 
     plt.tight_layout()
     pp.fig.canvas.draw()

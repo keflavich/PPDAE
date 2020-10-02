@@ -149,7 +149,7 @@ class Trainer():
                 x_plot = img.data.cpu().numpy()
             #if i == 1:
             #    print('WARNING: using only 1st batch')
-            #    continue
+            #    break
 
         z_all = np.concatenate(z_all)
         z_all = z_all[np.random.choice(z_all.shape[0], 5000,
@@ -198,7 +198,7 @@ class Trainer():
                     x_plot = img.data.cpu().numpy()
                 #if i == 1:
                 #    print('WARNING: using only 1st batch')
-                #    continue
+                #    break
 
         self._report_test(epoch)
 
@@ -254,7 +254,7 @@ class Trainer():
                 if 'ReduceLROnPlateau' == self.sch.__class__.__name__:
                     self.sch.step(val_loss)
                 else:
-                    self.sch.step(epoch)
+                    self.sch.step()
 
             # report elapsed time per epoch and total run tume
             epoch_time = datetime.datetime.now() - e_time

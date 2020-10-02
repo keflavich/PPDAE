@@ -23,13 +23,14 @@ import matplotlib
 if socket.gethostname() == 'exalearn':
     matplotlib.use('agg')
 import matplotlib.pyplot as plt
-import seaborn as sb
 import matplotlib.cm as cm
+import matplotlib.colors as colors
+import seaborn as sb
 
 path = os.path.dirname(os.getcwd())
 
 
-def plot_recon_wall(xhat, x, epoch=0):
+def plot_recon_wall(xhat, x, epoch=0, log=True):
     """Light-curves wall plot, function used during VAE training phase.
     Figure designed and ready to be appended to W&B logger.
 
@@ -51,19 +52,37 @@ def plot_recon_wall(xhat, x, epoch=0):
     """
 
     plt.close('all')
+    ncols = 10
+    fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
+    
+    for i in range(ncols):
+        v_min = np.min(x[i, 0, :, :])
+        v_max = np.max(x[i, 0, :, :])
+        if log:
+            # if imgs are stand then linthresh=1, linscale=100
+            # if imgs are [0,1] then linthresh=.0005, linscale=100
+            norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
+                                     vmin=v_min, vmax=v_max, base=10.)
+        else:
+            norm = None
+        
+        axis[0, i].imshow(x[i, 0, :, :], interpolation='bilinear',
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                          norm=norm)
+        axis[1, i].imshow(xhat[i, 0, :, :], interpolation='bilinear',
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                          norm=norm)
+        axis[2, i].imshow(x[i, 0, :, :] - xhat[i, 0, :, :],
+                          interpolation='bilinear',
+                          cmap=cm.viridis, origin='upper', aspect='equal',
+                          norm=norm)
 
-    fig, axis = plt.subplots(nrows=3, ncols=5, figsize=(16, 4))
-    for i in enumerate(5):
-        axis[0, i].imshow(x, interpolation='bilinear',
-                          cmap=cm.gray, origin='lower')
-        axis[1, i].imshow(xhat, interpolation='bilinear',
-                          cmap=cm.gray, origin='lower')
-        axis[2, i].imshow(x - xhat, interpolation='bilinear',
-                          cmap=cm.gray, origin='lower')
-
+    for ax in axis.ravel():
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+    fig.subplots_adjust(wspace=0, hspace=0, left=0, right=1)
     fig.suptitle('Reconstruction [Epoch %s]' % epoch,
-                 fontsize=20, y=1.025)
-    plt.tight_layout()
+                 fontsize=20, y=.95)
     fig.canvas.draw()
     return fig
 
@@ -130,6 +149,8 @@ def plot_latent_space(z, y=None):
         image of matplotlib figure
     """
     plt.close('all')
+    if z.shape[1] > 8:
+        z = z[:,:8]
     df = pd.DataFrame(z)
     if y is not None:
         df.loc[:, 'y'] = y
@@ -137,8 +158,7 @@ def plot_latent_space(z, y=None):
                      hue='y' if y is not None else None,
                      hue_order=sorted(set(y)) if y is not None else None,
                      diag_kind="hist", markers=".", height=2,
-                     plot_kws=dict(s=30, edgecolors='face', alpha=.8),
-                     diag_kws=dict(histtype='step'))
+                     plot_kws=dict(s=30, edgecolors='face', alpha=.8))
 
     plt.tight_layout()
     pp.fig.canvas.draw()
