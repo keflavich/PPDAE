@@ -8,7 +8,7 @@ import torchvision
 from bisect import bisect
 # from sklearn import preprocessing
 
-root = os.getcwd()
+root = '/Users/jorgetil/Astro/PPD-AE'
 colab_root = '/content/drive/My Drive'
 exalearn_root = '/home/jorgemarpa/data/imgs'
 
@@ -102,7 +102,7 @@ class ProtoPlanetaryDisks(Dataset):
             when False.
         """
         if machine == 'local':
-            ppd_path = '%s/data/PPD' % (root)
+            ppd_path = '%s/data/PPD/partitions' % (root)
         elif machine == 'colab':
             ppd_path = '%s/PPDAE/partitions' % (colab_root)
         elif machine == 'exalearn':

@@ -147,7 +147,9 @@ class Trainer():
             if i == len(data_loader) - 2:
                 xhat_plot = xhat.data.cpu().numpy()
                 x_plot = img.data.cpu().numpy()
-            if i == 5: continue
+            #if i == 1:
+            #    print('WARNING: using only 1st batch')
+            #    continue
 
         z_all = np.concatenate(z_all)
         z_all = z_all[np.random.choice(z_all.shape[0], 5000,
@@ -194,7 +196,9 @@ class Trainer():
                 if i == len(test_loader) - 2:
                     xhat_plot = xhat.data.cpu().numpy()
                     x_plot = img.data.cpu().numpy()
-                if i == 5: continue
+                #if i == 1:
+                #    print('WARNING: using only 1st batch')
+                #    continue
 
         self._report_test(epoch)
 
