@@ -10,25 +10,25 @@ parameters:
     value: 'PPD'
   lr:
     value: 0.0005
-  lr_sch:
+  lr-sch:
     value: 'step'         
-  batch_size:
+  batch-size:
     value: 128 
-  num_epochs:
+  num-epochs:
     value: 75
   cond:
     value: 'F'
-  feed_phy:
+  feed-phy:
     value: 'F'
-  latent_dim:
+  latent-dim:
     values: [4, 8, 12, 16, 24, 32, 48, 64]
   dropout:
     value: 0.2
-  kernel_size:
+  kernel-size:
     value: 3
-  conv_blocks:
+  conv-blocks:
     value: 4
-  model_name:
+  model-name:
     value: 'ConvLinTrans_AE'            
   comment:
     value: 'latent_dim_sweep'
