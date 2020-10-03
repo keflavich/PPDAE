@@ -173,7 +173,7 @@ def run_code():
 
     # initialize trainer
     trainer = Trainer(model, optimizer, args.batch_size, wandb,
-                      scheduler=scheduler, print_every=500,
+                      scheduler=scheduler, print_every=100,
                       device=device)
 
     if args.dry_run:

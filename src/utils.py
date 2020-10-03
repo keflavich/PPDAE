@@ -158,7 +158,8 @@ def plot_latent_space(z, y=None):
                      hue='y' if y is not None else None,
                      hue_order=sorted(set(y)) if y is not None else None,
                      diag_kind="hist", markers=".", height=2,
-                     plot_kws=dict(s=30, edgecolors='face', alpha=.8))
+                     plot_kws=dict(s=30, edgecolors='face', alpha=.8),
+                     diag_kws=dict(element='step'))
 
     plt.tight_layout()
     pp.fig.canvas.draw()
