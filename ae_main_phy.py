@@ -101,10 +101,10 @@ def run_code():
     print('Dataset size: ', len(dataset))
     
     # data loaders for training and testing
-    train_loader, val_loader = dataset.get_dataloader(batch_size=args.batch_size,
-                                                       shuffle=True,
-                                                       val_split=.2,
-                                                       random_seed=rnd_seed)
+    train_loader, val_loader, _ = dataset.get_dataloader(batch_size=args.batch_size,
+                                                         shuffle=True,
+                                                         val_split=.2,
+                                                         random_seed=rnd_seed)
 
     if args.data == 'PPD' and args.cond == 'T':
         wandb.config.physics_dim = len(dataset.par_names)

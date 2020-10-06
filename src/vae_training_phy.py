@@ -182,7 +182,6 @@ class Trainer():
             if i == len(data_loader) - 2:
                 xhat_plot = xhat.data.cpu().numpy()
                 x_plot = img.data.cpu().numpy()
-            if i == 5: continue
 
         mu_all = np.concatenate(mu_all)
         mu_all = mu_all[np.random.choice(mu_all.shape[0], 5000,
@@ -230,7 +229,7 @@ class Trainer():
                 if i == len(test_loader) - 2:
                     xhat_plot = xhat.data.cpu().numpy()
                     x_plot = img.data.cpu().numpy()
-                if i == 5: continue
+
 
         self._report_test(epoch)
 

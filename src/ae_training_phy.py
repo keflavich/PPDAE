@@ -154,6 +154,7 @@ class Trainer():
         z_all = np.concatenate(z_all)
         z_all = z_all[np.random.choice(z_all.shape[0], 5000,
                                        replace=False), :]
+        print(z_all.shape)
 
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:

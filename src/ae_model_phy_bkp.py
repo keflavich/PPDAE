@@ -736,29 +736,29 @@ class ConvLinTrans_AE(nn.Module):
         )
         
         self.dec_transconv = nn.Sequential(
-            nn.ConvTranspose2d(16, 16, 3, stride=2, output_padding=1, bias=False),
-            nn.Conv2d(16, 16, 5, bias=False),
+            nn.ConvTranspose2d(16, 16, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(16, 16, 3, bias=False),
             nn.BatchNorm2d(16, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(16, 8, 5, bias=False),
+            nn.Conv2d(16, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, 8, 3, stride=2, output_padding=1, bias=False),
-            nn.Conv2d(8, 8, 3, bias=False),
+            nn.ConvTranspose2d(8, 8, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(8, 8, 3, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
             nn.Conv2d(8, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, 3, stride=2, output_padding=1, bias=False),
-            nn.Conv2d(4, 4, 3, bias=False),
+            nn.ConvTranspose2d(4, 4, 5, stride=2, output_padding=1, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             nn.ConvTranspose2d(4, 4, 3, stride=2, output_padding=1, bias=False),
-            nn.Conv2d(4, 4, 3, bias=False),
+            #nn.Conv2d(4, 4, 3, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             nn.Conv2d(4, in_ch, 3),
@@ -803,7 +803,7 @@ class ConvLinTrans_AE(nn.Module):
         z = self.dec_transconv(z)
         
         z = F.interpolate(z, size=(self.img_width, self.img_height),
-                          mode='nearest')
+                          mode='bilinear')
         return z
 
     def forward(self, x, phy=None):
