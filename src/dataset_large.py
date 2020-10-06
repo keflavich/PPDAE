@@ -2,7 +2,7 @@ import os
 import glob
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision
 from bisect import bisect
@@ -198,4 +198,9 @@ class ProtoPlanetaryDisks(Dataset):
                                      sampler=val_sampler,
                                      drop_last=False)
 
-        return train_loader, val_loader
+        test_ds = TensorDataset(torch.Tensor(self.imgs_test),
+                                torch.Tensor(self.par_test))
+        test_loader = DataLoader(test_ds, batch_size=batch_size,
+                                 drop_last=False)
+
+        return train_loader, val_loader, test_loader

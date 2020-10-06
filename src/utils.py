@@ -74,8 +74,7 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
                           norm=norm)
         axis[2, i].imshow(x[i, 0, :, :] - xhat[i, 0, :, :],
                           interpolation='bilinear',
-                          cmap=cm.viridis, origin='upper', aspect='equal',
-                          norm=norm)
+                          cmap=cm.viridis, origin='upper', aspect='equal')
 
     for ax in axis.ravel():
         ax.axes.get_xaxis().set_visible(False)
