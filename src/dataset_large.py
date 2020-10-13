@@ -68,6 +68,16 @@ class ProtoPlanetaryDisks(Dataset):
         array with physical parameters asociated to each image
     meta_names  : list
         list with the names of the physical parameters (8 columns)
+        
+        m_dust = 'mass of the dust'
+        Rc     = 'critical radius when exp drops(size)'
+        f_exp  = 'flare exponent'
+        H0     = 'scale hight'
+        Rin    = 'inner raidus'
+        sd_exp = 'surface density exponent'
+        a_max  = 'max grain size'
+        inc    = 'inclination'
+        
     img_dim     : int
         image dimension, assuming square ratio
     img_channel : int
