@@ -1,13 +1,11 @@
 import os
-import glob
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision
-from bisect import bisect
 from sklearn import preprocessing
-# from sklearn import preprocessing
 
 root = '/Users/jorgetil/Astro/PPD-AE'
 colab_root = '/content/drive/My Drive'
@@ -53,7 +51,6 @@ class MyNormTransform:
     def __call__(self, x):
         return (x - self.mean) / self.std
 
-    
 
 # load pkl synthetic light-curve files to numpy array
 class ProtoPlanetaryDisks(Dataset):
@@ -70,16 +67,6 @@ class ProtoPlanetaryDisks(Dataset):
         array with physical parameters asociated to each image
     meta_names  : list
         list with the names of the physical parameters (8 columns)
-        
-        m_dust = 'mass of the dust'
-        Rc     = 'critical radius when exp drops(size)'
-        f_exp  = 'flare exponent'
-        H0     = 'scale hight'
-        Rin    = 'inner raidus'
-        sd_exp = 'surface density exponent'
-        a_max  = 'max grain size'
-        inc    = 'inclination'
-        
     img_dim     : int
         image dimension, assuming square ratio
     img_channel : int
@@ -100,7 +87,8 @@ class ProtoPlanetaryDisks(Dataset):
                    test_split=0.2, random_seed=42)
         return a dataloader object for trainning and testing
     """
-    def __init__(self, machine='local', transform=True, par_norm=False):
+    def __init__(self, machine='exalearn', transform=True,
+                 query='', par_norm=False):
         """
         Parameters
         ----------
@@ -108,8 +96,11 @@ class ProtoPlanetaryDisks(Dataset):
             which machine is been used (colab, exalearn, [local])
         transform  : bool, optional
             if apply or not image transformation when getting new item
-        par_norm   : bool, optional
-            load parameters that are scaled to [0,1] when True, or raw images
+        subsample  : bool, optional
+            wheather to subsample the entire dataset, for fastloading and
+            testing purposes
+        img_norm   : bool, optional
+            load images that are scaled to [0,1] when True, or raw images
             when False.
         """
         if machine == 'local':
@@ -120,27 +111,26 @@ class ProtoPlanetaryDisks(Dataset):
             ppd_path = '%s/PPD/partitions' % (exalearn_root)
         else:
             raise('Wrong host, please select local, colab or exalearn')
-            
-        self.par_train = np.load('%s/param_arr_gridandfiller123_train_all.npy' %
-                                 (ppd_path))
-        
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller123_norm_train_*.npy' %
-                                           (ppd_path)))
-        self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
-        self.start_indices = [0] * len(self.imgs_paths)
-        self.data_count = 0
-        for index, memmap in enumerate(self.imgs_memmaps):
-            self.start_indices[index] = self.data_count
-            self.data_count += memmap.shape[0]
-        
-        
+
+        self.par_train = np.load('%s/param_arr_gridandfiller123%s_train_all.npy' % 
+                            (ppd_path, '_norm' if par_norm else ''))
+        self.par_test = np.load('%s/param_arr_gridandfiller123%s_test.npy' % 
+                            (ppd_path, '_norm' if par_norm else ''))
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
-        self.par_test = np.load('%s/param_arr_gridandfiller123_test.npy' % 
-                                (ppd_path))
-        self.imgs_test = np.load('%s/img_array_gridandfiller123_norm_test.npy' % 
-                                 (ppd_path))
 
+        self.imgs_train = np.load('%s/img_array_gridandfiller123_norm_train_all.npy' % 
+                                  (ppd_path))
+        self.imgs_test = np.load('%s/img_array_gridandfiller123_norm_test.npy' % 
+                                  (ppd_path))
+
+        if query != '':
+            aux_df = pd.DataFrame(self.par_train, columns=self.par_names)
+            idx = aux_df.query(query).index
+            del aux_df
+            self.imgs_train = self.imgs_train[idx]
+            self.par_train = self.par_train[idx]
+            
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
         self.transform = transform
@@ -150,24 +140,32 @@ class ProtoPlanetaryDisks(Dataset):
         self.par_norm = par_norm
         self.MinMaxSc = preprocessing.MinMaxScaler()
         self.MinMaxSc.fit(np.concatenate([self.par_train, self.par_test]))
-        
 
-    def __len__(self):
-        return len(self.par_train) + len(self.par_test)
-    
 
     def __getitem__(self, index):
-        memmap_index = bisect(self.start_indices, index) - 1
-        index_in_memmap = index - self.start_indices[memmap_index]
-        img = self.imgs_memmaps[memmap_index][index_in_memmap]
+        """
+        Parameters
+        ----------
+        index : int
+            positional index 
+        Returns
+        -------
+            image and metadata at possition [index], applying set of 
+            transform_fx if needed.
+        """
+        img = self.imgs_train[index]
         par = self.par_train[index]
         if self.transform:
             img = self.transform_fx(img)
         if self.par_norm:
             par = self.MinMaxSc.transform(par.reshape(1, -1))[0]
-        return np.array(img), par
-    
+        return img, par
 
+    
+    def __len__(self):
+        return return len(self.par_train) + len(self.par_test)
+
+    
     def get_dataloader(self, batch_size=32, shuffle=True,
                        val_split=0.2, random_seed=42):
         """
@@ -216,7 +214,7 @@ class ProtoPlanetaryDisks(Dataset):
             val_loader = DataLoader(self, batch_size=batch_size,
                                      sampler=val_sampler,
                                      drop_last=False)
-
+            
         if self.par_norm:
             aux_par_test = self.MinMaxSc.transform(self.par_test)
         else:
@@ -228,3 +226,92 @@ class ProtoPlanetaryDisks(Dataset):
                                  drop_last=False)
 
         return train_loader, val_loader, test_loader
+
+
+    
+class MNIST(Dataset):
+    """
+    Dataset class that loads MNISt hand-writen digits,
+    the dataset has shape [N, C, H, W] = [36518, 1, 187, 187]
+    ...
+    
+    Attributes
+    ----------
+    train     : dataset
+        train dataset
+    test      : dataset
+        test  dataset
+    img_dim   : int
+        image dimension, assuming square ratio
+    
+    Methods
+    -------
+    __getitem__(self, index)
+        return data in the index position, apply transform_fx if transform
+        is True
+    __len__(self)
+        return the total length of the entire dataset
+    get_dataloader(self, batch_size=32, shuffle=True,
+                   test_split=0.2, random_seed=42)
+        return a dataloader object for trainning and testing
+    """
+    def __init__(self, machine='local'):
+        if machine == 'local':
+            mnist_path = '%s/data/' % (root)
+        elif machine == 'colab':
+            mnist_path = '%s/' % (colab_root)
+        elif machine == 'exalearn':
+            mnist_path = '%s/' % (exalearn_root)
+        self.train = torchvision.datasets.MNIST(
+            mnist_path, train=True, download=True,
+            transform=torchvision.transforms.Compose([
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                    (0.1307,), (0.3081,))
+            ]))
+        self.test = torchvision.datasets.MNIST(
+            mnist_path, train=False, download=True,
+            transform=torchvision.transforms.Compose([
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                    (0.1307,), (0.3081,))
+            ]))
+        self.img_dim = self.test[0][0].shape[-1]
+        self.img_channels = self.test[0][0].shape[0]
+
+    def __getitem__(self, index):
+        return self.test[index]
+
+    def __len__(self):
+        return len(self.train) + len(self.test)
+
+    def get_dataloader(self, batch_size=32, shuffle=True,
+                       test_split=.2, random_seed=32):
+        """
+        Parameters
+        ----------
+        batch_size : int
+            size of each batch
+        shuffle    : bool
+            whether to shuffle or not the samples
+        test_split : float
+            fraction of the dataset to be used as test sample
+        random_seed: int
+            initialization of random seed
+        
+        Returns
+        -------
+        train_loader : 
+            dataset loader with training instances 
+        test_loader  : 
+            dataset loader with testing instances 
+        """
+        train_loader = DataLoader(self.train,
+                                  batch_size=batch_size,
+                                  shuffle=shuffle)
+
+        test_loader = DataLoader(self.test,
+                                 batch_size=batch_size,
+                                 shuffle=shuffle)
+
+        return train_loader, test_loader
