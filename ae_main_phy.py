@@ -18,7 +18,7 @@ import numpy as np
 from src.dataset_large import ProtoPlanetaryDisks
 from src.ae_model_phy import *
 from src.ae_training_phy import Trainer
-from src.utils import count_parameters
+from src.utils import count_parameters, str2bool
 import wandb
 
 torch.autograd.set_detect_anomaly(True)
@@ -40,6 +40,10 @@ parser.add_argument('--machine', dest='machine', type=str, default='local',
 
 parser.add_argument('--data', dest='data', type=str, default='PPD',
                     help='data used for training (MNIST, [PPD])')
+parser.add_argument('--img-norm', dest='img_norm', type=str, default='T',
+                    help='image are 0-1 scaled ([T],F)')
+parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
+                    help='physical parameters are 0-1 scaled ([T],F)')
 
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
@@ -87,7 +91,7 @@ def run_code():
     # Load Data #
     if args.data == 'PPD':
         dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
-                                      img_norm=True)
+                                      par_norm=str2bool(args.par_norm))
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
@@ -106,7 +110,7 @@ def run_code():
                                                          val_split=.2,
                                                          random_seed=rnd_seed)
 
-    if args.data == 'PPD' and args.cond == 'T':
+    if args.data == 'PPD' and str2bool(args.cond):
         wandb.config.physics_dim = len(dataset.par_names)
     else:
         wandb.config.physics_dim = 0
@@ -121,11 +125,30 @@ def run_code():
     if args.model_name == 'ConvLinTrans_AE':
         model = ConvLinTrans_AE(latent_dim=args.latent_dim,
                                 img_dim=dataset.img_dim,
+                                dropout=args.dropout,
                                 in_ch=dataset.img_channels,
                                 kernel=args.kernel_size,
                                 n_conv_blocks=args.conv_blocks,
                                 phy_dim=wandb.config.physics_dim,
-                                feed_phy=args.feed_phy)
+                                feed_phy=str2bool(args.feed_phy))
+    elif args.model_name == 'ConvLin_AE':
+        model = ConvLin_AE(latent_dim=args.latent_dim,
+                           img_dim=dataset.img_dim,
+                           dropout=args.dropout,
+                           in_ch=dataset.img_channels,
+                           kernel=args.kernel_size,
+                           n_conv_blocks=args.conv_blocks,
+                           phy_dim=wandb.config.physics_dim,
+                           feed_phy=str2bool(args.feed_phy))
+    elif args.model_name == 'ConvLinUpsample_AE':
+        model = ConvLinUpsample_AE(latent_dim=args.latent_dim,
+                                   img_dim=dataset.img_dim,
+                                   dropout=args.dropout,
+                                   in_ch=dataset.img_channels,
+                                   kernel=args.kernel_size,
+                                   n_conv_blocks=args.conv_blocks,
+                                   phy_dim=wandb.config.physics_dim,
+                                   feed_phy=str2bool(args.feed_phy))
         
     else:
         print('Wrong Model Name.')
