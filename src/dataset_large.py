@@ -100,7 +100,8 @@ class ProtoPlanetaryDisks(Dataset):
                    test_split=0.2, random_seed=42)
         return a dataloader object for trainning and testing
     """
-    def __init__(self, machine='local', transform=True, par_norm=False):
+    def __init__(self, machine='exalearn', transform=True, par_norm=False,
+                 subset=''):
         """
         Parameters
         ----------
@@ -121,11 +122,14 @@ class ProtoPlanetaryDisks(Dataset):
         else:
             raise('Wrong host, please select local, colab or exalearn')
             
-        self.par_train = np.load('%s/param_arr_gridandfiller123_train_all.npy' %
-                                 (ppd_path))
+        if subset != '':
+            subset = '_%s' % (subset)
+            
+        self.par_train = np.load('%s/param_arr_gridandfiller123%s_train_all.npy' %
+                                 (ppd_path, subset))
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller123_norm_train_*.npy' %
-                                           (ppd_path)))
+        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller123_norm%s_train_*.npy' %
+                                           (ppd_path, subset)))
         self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
         self.start_indices = [0] * len(self.imgs_paths)
         self.data_count = 0
@@ -136,10 +140,10 @@ class ProtoPlanetaryDisks(Dataset):
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
-        self.par_test = np.load('%s/param_arr_gridandfiller123_test.npy' % 
-                                (ppd_path))
-        self.imgs_test = np.load('%s/img_array_gridandfiller123_norm_test.npy' % 
-                                 (ppd_path))
+        self.par_test = np.load('%s/param_arr_gridandfiller123%s_test.npy' % 
+                                (ppd_path, subset))
+        self.imgs_test = np.load('%s/img_array_gridandfiller123_norm%s_test.npy' % 
+                                 (ppd_path, subset))
 
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
