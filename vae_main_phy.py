@@ -18,10 +18,10 @@ import numpy as np
 from src.dataset_large import ProtoPlanetaryDisks
 from src.vae_model_phy import *
 from src.vae_training_phy import Trainer
-from src.utils import count_parameters
+from src.utils import count_parameters, str2bool
 import wandb
 
-torch.autograd.set_detect_anomaly(True)
+torch.autograd.set_detect_anomaly(False)
 
 # set random seed
 rnd_seed = 13
@@ -40,6 +40,8 @@ parser.add_argument('--machine', dest='machine', type=str, default='local',
 
 parser.add_argument('--data', dest='data', type=str, default='PPD',
                     help='data used for training (MNIST, [PPD])')
+parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
+                    help='physical parameters are 0-1 scaled ([T],F)')
 
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
@@ -89,7 +91,7 @@ def run_code():
     # Load Data #
     if args.data == 'PPD':
         dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
-                                      img_norm=True)
+                                      par_norm=str2bool(args.par_norm))
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
