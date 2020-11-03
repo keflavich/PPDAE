@@ -166,15 +166,14 @@ class Trainer():
             img = img.to(self.device)
             phy = phy.to(self.device)
 
-            with autograd.detect_anomaly():
-                xhat, z, mu, logvar = self.model(img, phy=phy)
-                # calculate loss value
-                loss = self._loss(img, xhat, mu, logvar,
-                                  train=True, ep=epoch)
-                # calculate the gradients
-                loss.backward()
-                # perform optimization step accordig to the gradients
-                self.opt.step()
+            xhat, z, mu, logvar = self.model(img, phy=phy)
+            # calculate loss value
+            loss = self._loss(img, xhat, mu, logvar,
+                              train=True, ep=epoch)
+            # calculate the gradients
+            loss.backward()
+            # perform optimization step accordig to the gradients
+            self.opt.step()
 
             self._report_train(i)
             # aux variables for latter plots
@@ -285,7 +284,7 @@ class Trainer():
                 if 'ReduceLROnPlateau' == self.sch.__class__.__name__:
                     self.sch.step(val_loss)
                 else:
-                    self.sch.step(epoch)
+                    self.sch.step()
 
             # report elapsed time per epoch and total run tume
             epoch_time = datetime.datetime.now() - e_time
@@ -323,6 +322,10 @@ class Trainer():
 
             self.wb.log({'Train_Loss': self.train_loss['Loss'][-1]},
                         step=self.num_steps)
+            self.wb.log({'Train_MSE': self.train_loss['BCE'][-1]},
+                        step=self.num_steps)
+            self.wb.log({'TrainKLD': self.train_loss['KLD'][-1]},
+                        step=self.num_steps)
             print("__"*20)
 
     def _report_test(self, ep):
@@ -341,5 +344,9 @@ class Trainer():
         print("Loss: %.6f" % (self.test_loss['Loss'][-1]))
 
         self.wb.log({'Test_Loss': self.test_loss['Loss'][-1]},
+                    step=self.num_steps)
+        self.wb.log({'Test_MSE': self.test_loss['BCE'][-1]},
+                    step=self.num_steps)
+        self.wb.log({'Test_KLD': self.test_loss['KLD'][-1]},
                     step=self.num_steps)
         print("__"*20)
