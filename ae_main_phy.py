@@ -47,6 +47,8 @@ parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
 parser.add_argument('--subset', dest='subset', type=str, default='',
                     help='data subset ([],fexp1)')
 
+parser.add_argument('--optim', dest='optim', type=str, default='Adam',
+                    help='Optimiazer ([Adam], SGD)')
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
 parser.add_argument('--lr-sch', dest='lr_sch', type=str, default=None,
@@ -72,7 +74,7 @@ parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
 parser.add_argument('--conv-blocks', dest='conv_blocks', type=int, default=5,
                     help='conv+actfx+pool blocks [5]')
 parser.add_argument('--model-name', dest='model_name', type=str, 
-                    default='Linear_AE', help='name of model')
+                    default='ConvLinTrans_AE', help='name of model')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments')
@@ -168,7 +170,13 @@ def run_code():
     print('\n')
 
     # Initialize optimizers
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+    if args.optim == 'Adam':
+        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+    elif args.optim == 'SGD':
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    else:
+        print('Error: please select a optimazer from Adam or SGD...')
+        raise
 
     # Learning Rate scheduler
     if args.lr_sch == 'step':
@@ -180,12 +188,14 @@ def run_code():
                                                      gamma=0.985)
     elif args.lr_sch == 'cos':
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                         T_max=50,
+                                                         T_max=25,
                                                          eta_min=1e-5)
     elif args.lr_sch == 'plateau':
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                          mode='min',
-                                                         factor=.5,
+                                                         factor=.1,
+                                                         patience=10,
+                                                         threshold=1e-4,
                                                          verbose=True)
     else:
         scheduler = None
