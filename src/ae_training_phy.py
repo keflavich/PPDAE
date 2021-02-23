@@ -158,7 +158,7 @@ class Trainer():
 
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:
-            wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch)
+            wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch, log=True)
             self.wb.log({'Train_Recon':  self.wb.Image(wall)},
                         step=self.num_steps)
 
@@ -205,7 +205,7 @@ class Trainer():
 
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:
-            wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch)
+            wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch, log=True)
             self.wb.log({'Test_Recon':  self.wb.Image(wall)},
                         step=self.num_steps)
 

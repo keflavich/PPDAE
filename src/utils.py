@@ -53,6 +53,7 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
 
     plt.close('all')
     ncols = 10
+    res = x - xhat
     fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
     
     for i in range(ncols):
@@ -61,7 +62,7 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
         if log:
             # if imgs are stand then linthresh=1, linscale=100
             # if imgs are [0,1] then linthresh=.0005, linscale=100
-            norm = colors.SymLogNorm(linthresh=.0005, linscale=100, 
+            norm = colors.SymLogNorm(linthresh=.005, linscale=5, 
                                      vmin=v_min, vmax=v_max, base=10.)
         else:
             norm = None
@@ -72,9 +73,9 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
         axis[1, i].imshow(xhat[i, 0, :, :], interpolation='bilinear',
                           cmap=cm.viridis, origin='upper', aspect='equal',
                           norm=norm)
-        axis[2, i].imshow(x[i, 0, :, :] - xhat[i, 0, :, :],
+        axis[2, i].imshow(res[i, 0, :, :],
                           interpolation='bilinear',
-                          cmap=cm.viridis, origin='upper', aspect='equal')
+                          cmap=cm.RdBu, origin='upper', aspect='equal')
 
     for ax in axis.ravel():
         ax.axes.get_xaxis().set_visible(False)

@@ -40,8 +40,8 @@ parser.add_argument('--machine', dest='machine', type=str, default='local',
 
 parser.add_argument('--data', dest='data', type=str, default='PPD',
                     help='data used for training (MNIST, [PPD])')
-parser.add_argument('--img-norm', dest='img_norm', type=str, default='T',
-                    help='image are 0-1 scaled ([T],F)')
+parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
+                    help='type of normalization for images ([global], image)')
 parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
                     help='physical parameters are 0-1 scaled ([T],F)')
 parser.add_argument('--subset', dest='subset', type=str, default='',
@@ -96,7 +96,7 @@ def run_code():
     if args.data == 'PPD':
         dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
                                       par_norm=str2bool(args.par_norm),
-                                      subset=args.subset)
+                                      subset=args.subset, image_norm=args.img_norm)
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
