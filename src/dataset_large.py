@@ -139,7 +139,7 @@ class ProtoPlanetaryDisks(Dataset):
         
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
-                           'Rin', 'sd_exp', 'a_max', 'inc']
+                           'Rin', 'sd_exp', 'alpha', 'inc']
         self.par_test = np.load('%s/param_arr_gridandfiller%s_test.npy' % 
                                 (ppd_path, subset))
         self.imgs_test = np.load('%s/img_array_gridandfiller_%snorm%s_test.npy' % 
