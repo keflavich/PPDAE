@@ -626,7 +626,7 @@ class ConvLinTrans_AE(nn.Module):
             nn.Conv2d(4, 4, 4, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.Conv2d(4, in_ch, 4),
+            nn.Conv2d(4, in_ch, 7),
             nn.Sigmoid()
         )
 

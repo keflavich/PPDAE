@@ -77,7 +77,7 @@ class ProtoPlanetaryDisks(Dataset):
         H0     = 'scale hight'
         Rin    = 'inner raidus'
         sd_exp = 'surface density exponent'
-        a_max  = 'max grain size'
+        alpha  = 'dust stettling'
         inc    = 'inclination'
         
     img_dim     : int
@@ -101,7 +101,7 @@ class ProtoPlanetaryDisks(Dataset):
         return a dataloader object for trainning and testing
     """
     def __init__(self, machine='exalearn', transform=True, par_norm=False,
-                 subset='', image_norm='global'):
+                 subset='25052021', image_norm='global'):
         """
         Parameters
         ----------
@@ -125,10 +125,10 @@ class ProtoPlanetaryDisks(Dataset):
         if subset != '':
             subset = '_%s' % (subset)
             
-        self.par_train = np.load('%s/param_arr_gridandfiller123%s_train_all.npy' %
+        self.par_train = np.load('%s/param_arr_gridandfiller%s_train_all.npy' %
                                  (ppd_path, subset))
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller123_%snorm%s_train_*.npy' %
+        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller_%snorm%s_train_*.npy' %
                                            (ppd_path, image_norm, subset)))
         self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
         self.start_indices = [0] * len(self.imgs_paths)
@@ -140,9 +140,9 @@ class ProtoPlanetaryDisks(Dataset):
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
                            'Rin', 'sd_exp', 'a_max', 'inc']
-        self.par_test = np.load('%s/param_arr_gridandfiller123%s_test.npy' % 
+        self.par_test = np.load('%s/param_arr_gridandfiller%s_test.npy' % 
                                 (ppd_path, subset))
-        self.imgs_test = np.load('%s/img_array_gridandfiller123_%snorm%s_test.npy' % 
+        self.imgs_test = np.load('%s/img_array_gridandfiller_%snorm%s_test.npy' % 
                                  (ppd_path, image_norm, subset))
 
         self.img_dim = self.imgs_test[0].shape[-1]
