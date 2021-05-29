@@ -1188,6 +1188,6 @@ class ConvLinTrans_AE(nn.Module):
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
 
-        z = F.interpolate(z, size=(self.img_width, self.img_height),
+        x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
                           mode='nearest')
-        return z
+        return x_hat, z
