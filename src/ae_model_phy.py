@@ -1119,7 +1119,7 @@ class ConvLinTrans_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0),
+            nn.Linear(self.img_size + (phy_dim if feed_phy else 0),#self.latent_dim
                       128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
