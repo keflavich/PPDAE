@@ -1119,7 +1119,7 @@ class ConvLinTrans_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.img_size + (phy_dim if feed_phy else 0),#self.latent_dim
+            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0),
                       128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
@@ -1135,7 +1135,6 @@ class ConvLinTrans_AE(nn.Module):
             nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU(),
         )
-
         self.dec_transconv = nn.Sequential(
             nn.ConvTranspose2d(16, 16, 4, stride=2, bias=False,
                                output_padding=1, padding=0),
@@ -1169,7 +1168,6 @@ class ConvLinTrans_AE(nn.Module):
             nn.Conv2d(4, in_ch, 7),
             nn.Sigmoid()
         )
-
 
     def forward(self, z, phy=None):
         """
