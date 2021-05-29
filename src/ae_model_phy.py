@@ -48,15 +48,15 @@ def pool_out(l0, k, st):
 
 class Linear_AE(nn.Module):
     """
-    Autoencoder class with user defined latent space, image size, 
+    Autoencoder class with user defined latent space, image size,
     and number of image channels. Encoder and decoder layers are
     sequences of Dense + Act_fn + Dropout
-    
+
     NOTE: here the number of neurons and layers are tunned to work
     best with [28x28] images, as MNIST
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -137,7 +137,7 @@ class Linear_AE(nn.Module):
     def encode(self, x, phy=None):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -155,7 +155,7 @@ class Linear_AE(nn.Module):
     def decode(self, z, phy=None):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -173,7 +173,7 @@ class Linear_AE(nn.Module):
     def forward(self, x, phy=None):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -192,16 +192,16 @@ class Linear_AE(nn.Module):
 
 class TranConv_AE(nn.Module):
     """
-    Autoencoder class with user defined latent dimension, image size, 
+    Autoencoder class with user defined latent dimension, image size,
     and number of image channels. The encoder is constructed with
     sets of 2Dconv + Act_fn + MaxPooling layers. The decoder
     contains consecutive Transpose 2D Conv + Act_fn layers.
-    
+
     NOTE: here the number of neurons and layers are tunned to work
     best with [28x28] images, as MNIST
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -268,7 +268,7 @@ class TranConv_AE(nn.Module):
     def encode(self, x):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -283,7 +283,7 @@ class TranConv_AE(nn.Module):
     def decode(self, z):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -298,7 +298,7 @@ class TranConv_AE(nn.Module):
     def forward(self, x):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -317,17 +317,17 @@ class TranConv_AE(nn.Module):
 
 class ConvLin_AE(nn.Module):
     """
-    Autoencoder class with user defined latent dimension, image size, 
+    Autoencoder class with user defined latent dimension, image size,
     and number of image channels. The encoder is constructed with
-    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined,
     with a final linear layer to return the latent code.
     The decoder is build using Linear layers.
-    
-    NOTE: here the number of neurons and layers in the decoder 
+
+    NOTE: here the number of neurons and layers in the decoder
     are tunned to work best with [28x28] images, as MNIST
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -422,7 +422,7 @@ class ConvLin_AE(nn.Module):
     def encode(self, x, phy=None):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -441,7 +441,7 @@ class ConvLin_AE(nn.Module):
     def decode(self, z, phy=None):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -453,14 +453,14 @@ class ConvLin_AE(nn.Module):
         if self.phy_dim > 0 and self.feed_phy and phy is not None:
             z = torch.cat([z, phy], dim=1)
         z = self.dec_linear(z)
-        z = z.view([z.size(0), self.in_ch, 
+        z = z.view([z.size(0), self.in_ch,
                     self.img_width, self.img_height])
         return z
 
     def forward(self, x, phy=None):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -476,18 +476,18 @@ class ConvLin_AE(nn.Module):
         xhat = self.decode(z, phy=None)
         return xhat, z
 
-    
-    
+
+'''
 class ConvLinTrans_AE(nn.Module):
     """
-    Autoencoder class with user defined latent dimension, image size, 
+    Autoencoder class with user defined latent dimension, image size,
     and number of image channels. The encoder is constructed with
-    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined,
     with a final linear layer to return the latent code.
     The decoder is build using Linear layers.
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -547,21 +547,21 @@ class ConvLinTrans_AE(nn.Module):
         for i in range(n_conv_blocks):
             self.enc_conv_blocks.add_module('conv2d_%i1' % (i+1),
                                             nn.Conv2d(h_ch, h_ch*2,
-                                                      kernel_size=kernel, 
+                                                      kernel_size=kernel,
                                                       bias=False))
-            self.enc_conv_blocks.add_module('bn_%i1' % (i+1), 
-                                            nn.BatchNorm2d(h_ch*2, 
+            self.enc_conv_blocks.add_module('bn_%i1' % (i+1),
+                                            nn.BatchNorm2d(h_ch*2,
                                                            momentum=0.005))
-            self.enc_conv_blocks.add_module('relu_%i1' % (i+1), 
+            self.enc_conv_blocks.add_module('relu_%i1' % (i+1),
                                             nn.ReLU())
             self.enc_conv_blocks.add_module('conv2d_%i2' % (i+1),
                                             nn.Conv2d(h_ch*2, h_ch*2,
-                                                      kernel_size=kernel, 
+                                                      kernel_size=kernel,
                                                       bias=False))
-            self.enc_conv_blocks.add_module('bn_%i2' % (i+1), 
-                                            nn.BatchNorm2d(h_ch*2, 
+            self.enc_conv_blocks.add_module('bn_%i2' % (i+1),
+                                            nn.BatchNorm2d(h_ch*2,
                                                            momentum=0.005))
-            self.enc_conv_blocks.add_module('relu_%i2' % (i+1), 
+            self.enc_conv_blocks.add_module('relu_%i2' % (i+1),
                                             nn.ReLU())
             self.enc_conv_blocks.add_module('maxpool_%i' % (i+1),
                                             nn.MaxPool2d(2, stride=2))
@@ -579,7 +579,7 @@ class ConvLinTrans_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0), 
+            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0),
                       128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
@@ -595,7 +595,7 @@ class ConvLinTrans_AE(nn.Module):
             nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU(),
         )
-        
+
         self.dec_transconv = nn.Sequential(
             nn.ConvTranspose2d(16, 16, 4, stride=2, bias=False,
                                output_padding=1, padding=0),
@@ -633,7 +633,7 @@ class ConvLinTrans_AE(nn.Module):
     def encode(self, x, phy=None):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -652,7 +652,7 @@ class ConvLinTrans_AE(nn.Module):
     def decode(self, z, phy=None):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -666,7 +666,7 @@ class ConvLinTrans_AE(nn.Module):
         z = self.dec_linear(z)
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
-        
+
         z = F.interpolate(z, size=(self.img_width, self.img_height),
                           mode='nearest')
         return z
@@ -674,7 +674,7 @@ class ConvLinTrans_AE(nn.Module):
     def forward(self, x, phy=None):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -689,19 +689,19 @@ class ConvLinTrans_AE(nn.Module):
         z = self.encode(x, phy=phy)
         xhat = self.decode(z, phy=phy)
         return xhat, z
-    
-    
-    
+'''
+
+
 class ResLinTrans_AE(nn.Module):
     """
-    Autoencoder class with user defined latent dimension, image size, 
+    Autoencoder class with user defined latent dimension, image size,
     and number of image channels. The encoder is constructed with
-    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined,
     with a final linear layer to return the latent code.
     The decoder is build using Linear layers.
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -754,13 +754,13 @@ class ResLinTrans_AE(nn.Module):
         self.in_ch = in_ch
         self.phy_dim = phy_dim
         self.feed_phy = feed_phy
-        
+
         # ENCODER modules
         # ResNet model from pytorch library, pretrained can be changes
         # to False if training from scratch
         resnet = models.resnet18(pretrained=True)
         # delete the last fc layer and replace it with a custom fc layer.
-        modules = list(resnet.children())[:-1]      
+        modules = list(resnet.children())[:-1]
         # add 1 cnv layer if input channels are different than 3
         if in_ch != 3:
             first_conv_layer = [nn.Conv2d(in_ch, 3, kernel_size=1,
@@ -795,7 +795,7 @@ class ResLinTrans_AE(nn.Module):
             nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU(),
         )
-        
+
         self.dec_transconv = nn.Sequential(
             nn.ConvTranspose2d(16, 16, 3, stride=2, output_padding=1, bias=False),
             nn.Conv2d(16, 16, 5, bias=False),
@@ -829,7 +829,7 @@ class ResLinTrans_AE(nn.Module):
     def encode(self, x, phy=None):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -848,7 +848,7 @@ class ResLinTrans_AE(nn.Module):
     def decode(self, z, phy=None):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -870,7 +870,7 @@ class ResLinTrans_AE(nn.Module):
     def forward(self, x, phy=None):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -885,18 +885,18 @@ class ResLinTrans_AE(nn.Module):
         z = self.encode(x, phy=phy)
         xhat = self.decode(z, phy=phy)
         return xhat, z
-    
-    
+
+
 class ConvLinUpsample_AE(nn.Module):
     """
-    Autoencoder class with user defined latent dimension, image size, 
+    Autoencoder class with user defined latent dimension, image size,
     and number of image channels. The encoder is constructed with
-    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined, 
+    sets of [2Dconv + Act_fn + MaxPooling] blocks, user defined,
     with a final linear layer to return the latent code.
     The decoder is build using Linear layers.
-    
+
     ...
-    
+
     Attributes
     ----------
     latent_dim : int
@@ -956,21 +956,21 @@ class ConvLinUpsample_AE(nn.Module):
         for i in range(n_conv_blocks):
             self.enc_conv_blocks.add_module('conv2d_%i1' % (i+1),
                                             nn.Conv2d(h_ch, h_ch*2,
-                                                      kernel_size=kernel, 
+                                                      kernel_size=kernel,
                                                       bias=False))
-            self.enc_conv_blocks.add_module('bn_%i1' % (i+1), 
-                                            nn.BatchNorm2d(h_ch*2, 
+            self.enc_conv_blocks.add_module('bn_%i1' % (i+1),
+                                            nn.BatchNorm2d(h_ch*2,
                                                            momentum=0.005))
-            self.enc_conv_blocks.add_module('relu_%i1' % (i+1), 
+            self.enc_conv_blocks.add_module('relu_%i1' % (i+1),
                                             nn.ReLU())
             self.enc_conv_blocks.add_module('conv2d_%i2' % (i+1),
                                             nn.Conv2d(h_ch*2, h_ch*2,
-                                                      kernel_size=kernel, 
+                                                      kernel_size=kernel,
                                                       bias=False))
-            self.enc_conv_blocks.add_module('bn_%i2' % (i+1), 
-                                            nn.BatchNorm2d(h_ch*2, 
+            self.enc_conv_blocks.add_module('bn_%i2' % (i+1),
+                                            nn.BatchNorm2d(h_ch*2,
                                                            momentum=0.005))
-            self.enc_conv_blocks.add_module('relu_%i2' % (i+1), 
+            self.enc_conv_blocks.add_module('relu_%i2' % (i+1),
                                             nn.ReLU())
             self.enc_conv_blocks.add_module('maxpool_%i' % (i+1),
                                             nn.MaxPool2d(2, stride=2))
@@ -988,7 +988,7 @@ class ConvLinUpsample_AE(nn.Module):
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
-            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0), 
+            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0),
                       128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
@@ -1004,7 +1004,7 @@ class ConvLinUpsample_AE(nn.Module):
             nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU(),
         )
-        
+
         self.dec_transconv = nn.Sequential(
             nn.Upsample(scale_factor= 2, mode='nearest'),
             nn.Conv2d(16, 8, 5, bias=False),
@@ -1029,7 +1029,7 @@ class ConvLinUpsample_AE(nn.Module):
     def encode(self, x, phy=None):
         """
         Encoder side of autoencoder.
-        
+
         Parameters
         ----------
         x : tensor
@@ -1048,7 +1048,7 @@ class ConvLinUpsample_AE(nn.Module):
     def decode(self, z, phy=None):
         """
         Decoder side of autoencoder.
-        
+
         Parameters
         ----------
         z : tensor
@@ -1062,7 +1062,7 @@ class ConvLinUpsample_AE(nn.Module):
         z = self.dec_linear(z)
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
-        
+
         z = F.interpolate(z, size=(self.img_width, self.img_height),
                           mode='nearest')
         return z
@@ -1070,7 +1070,7 @@ class ConvLinUpsample_AE(nn.Module):
     def forward(self, x, phy=None):
         """
         Autoencoder forward pass.
-        
+
         Parameters
         ----------
         x : tensor
@@ -1085,3 +1085,109 @@ class ConvLinUpsample_AE(nn.Module):
         z = self.encode(x, phy=phy)
         xhat = self.decode(z, phy=phy)
         return xhat, z
+
+
+##########Temp###################
+class ConvLinTrans_AE(nn.Module):
+
+    def __init__(self, latent_dim=32, img_dim=28, dropout=.2, in_ch=1,
+                 kernel=3, n_conv_blocks=5, phy_dim=0, feed_phy=True):
+        """
+        Parameters
+        ----------
+        latent_dim : int
+            size of the dimensilatent space
+        img_dim    : int
+            image size, only one dimension, assuming square ratio.
+        dropout    : float
+            dropout probability
+        in_ch      : int
+            number of channels in input/output image
+        kernel     : int
+            size of the convolving kernel
+        n_conv_blocks : int
+            number of [conv + relu + maxpooling] blocks
+        """
+        super(ConvLinTrans_AE, self).__init__()
+        self.latent_dim = latent_dim
+        self.img_width = self.img_height = img_dim
+        self.img_size = self.img_width * self.img_height
+        self.in_ch = in_ch
+        self.phy_dim = phy_dim
+        self.feed_phy = feed_phy
+
+
+        # Decoder specification
+        self.dec_linear = nn.Sequential(
+            nn.Linear(self.latent_dim + (phy_dim if feed_phy else 0),
+                      128, bias=False),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(128, 16 * 4 * 4, bias=False),
+            nn.BatchNorm1d(16 * 4 * 4),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(16 * 4 * 4, 16 * 8 * 8, bias=False),
+            nn.BatchNorm1d(16 * 8 * 8),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
+            nn.ReLU(),
+        )
+
+        self.dec_transconv = nn.Sequential(
+            nn.ConvTranspose2d(16, 16, 4, stride=2, bias=False,
+                               output_padding=1, padding=0),
+            nn.Conv2d(16, 16, 4, bias=False),
+            nn.BatchNorm2d(16, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(16, 8, 4, bias=False),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(8, 8, 4, stride=2, bias=False,
+                               output_padding=1, padding=0),
+            nn.Conv2d(8, 8, 4, bias=False),
+            nn.BatchNorm2d(8, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(8, 4, 4, bias=False),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 4, stride=2, bias=False,
+                               output_padding=1, padding=0),
+            nn.Conv2d(4, 4, 4, bias=False),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, 4, 4, bias=False),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.ConvTranspose2d(4, 4, 4, stride=2, bias=False,
+                               output_padding=1, padding=0),
+            nn.Conv2d(4, 4, 4, bias=False),
+            nn.BatchNorm2d(4, momentum=0.005),
+            nn.ReLU(),
+            nn.Conv2d(4, in_ch, 7),
+            nn.Sigmoid()
+        )
+
+
+    def forward(self, z, phy=None):
+        """
+
+        Parameters
+        ----------
+        z : tensor
+            latent code [N, latent_dim]
+        Returns
+        -------
+            reconstructed image [N, C, H, W]
+        """
+        if self.phy_dim > 0 and self.feed_phy and phy is not None:
+            z = torch.cat([z, phy], dim=1)
+        z = self.dec_linear(z)
+        z = z.view(-1, 16, 16, 16)
+        z = self.dec_transconv(z)
+
+        z = F.interpolate(z, size=(self.img_width, self.img_height),
+                          mode='nearest')
+        return z
