@@ -5,14 +5,14 @@ disks using physical parameters as input.
 
 The model architecture is the following:
 
-![AE model](https://github.com/jorgemarpa/PPDAE/blob/paper-release/figures/PPDAE_arch_V2.png)
+![AE model](https://github.com/jorgemarpa/PPDAE/blob/main/figures/PPDAE_arch_V2.png)
 
 ### Image Samples
 
 The edge-on disk images used for training were generated using the MCFOST Radiative
 Transfer code. The training set looks like this:
 
-![imgs](https://github.com/jorgemarpa/PPDAE/blob/paper-release/figures/image_wall.png)
+![imgs](https://github.com/jorgemarpa/PPDAE/blob/main/figures/image_wall.png)
 
 with a wide variety of shapes and sizes.
 
@@ -35,7 +35,7 @@ We used 8 physical parameters to as inputs to MCFOST:
 All physical parameters where sampled from a evenly spaced grid and a random sampling
 between the range of possible values in order to fill up the gaps.
 
-![phy dist](https://github.com/jorgemarpa/PPDAE/blob/paper-release/figures/phy_params.png)
+![phy dist](https://github.com/jorgemarpa/PPDAE/blob/main/figures/phy_params.png)
 
 ## Usage
 
@@ -74,7 +74,7 @@ Use `ae_main.py` to train a AE model with the following parameters:
 
 Edge-on images (upper row), AE reconstruction (middle), and residuals (lower row).
 
-![recon](https://github.com/jorgemarpa/PPDAE/blob/paper-release/figures/Test_Recon_106050_52a73755.png)
+![recon](https://github.com/jorgemarpa/PPDAE/blob/main/figures/Test_Recon_106050_52a73755.png)
 
 Training logs and models are stored at W&B here:
  https://wandb.ai/deep_ppd/PPD-AE
