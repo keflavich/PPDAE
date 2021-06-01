@@ -10,7 +10,7 @@ from sklearn import preprocessing
 # from sklearn import preprocessing
 
 root = '/Users/jorgetil/Astro/PPD-AE'
-colab_root = '/content/drive/My Drive'
+colab_root = '/content/drive/MyDrive'
 exalearn_root = '/home/jorgemarpa/data/imgs'
 
 
