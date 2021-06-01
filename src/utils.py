@@ -18,14 +18,13 @@ functions:
 import os, re, glob
 import socket
 import numpy as np
-import pandas as pd
 import matplotlib
-if socket.gethostname() == 'exalearn':
-    matplotlib.use('agg')
+
+if socket.gethostname() == "exalearn":
+    matplotlib.use("agg")
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
-import seaborn as sb
 
 path = os.path.dirname(os.getcwd())
 
@@ -51,38 +50,52 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
         an image version of the figure
     """
 
-    plt.close('all')
+    plt.close("all")
     ncols = 10
     res = x - xhat
     fig, axis = plt.subplots(nrows=3, ncols=ncols, figsize=(ncols, 4))
-    
+
     for i in range(ncols):
         v_min = np.min(x[i, 0, :, :])
         v_max = np.max(x[i, 0, :, :])
         if log:
             # if imgs are stand then linthresh=1, linscale=100
             # if imgs are [0,1] then linthresh=.0005, linscale=100
-            norm = colors.SymLogNorm(linthresh=.005, linscale=5, 
-                                     vmin=v_min, vmax=v_max, base=10.)
+            norm = colors.SymLogNorm(
+                linthresh=0.005, linscale=5, vmin=v_min, vmax=v_max, base=10.0
+            )
         else:
             norm = None
-        
-        axis[0, i].imshow(x[i, 0, :, :], interpolation='bilinear',
-                          cmap=cm.viridis, origin='upper', aspect='equal',
-                          norm=norm)
-        axis[1, i].imshow(xhat[i, 0, :, :], interpolation='bilinear',
-                          cmap=cm.viridis, origin='upper', aspect='equal',
-                          norm=norm)
-        axis[2, i].imshow(res[i, 0, :, :],
-                          interpolation='bilinear',
-                          cmap=cm.RdBu, origin='upper', aspect='equal')
+
+        axis[0, i].imshow(
+            x[i, 0, :, :],
+            interpolation="bilinear",
+            cmap=cm.viridis,
+            origin="upper",
+            aspect="equal",
+            norm=norm,
+        )
+        axis[1, i].imshow(
+            xhat[i, 0, :, :],
+            interpolation="bilinear",
+            cmap=cm.viridis,
+            origin="upper",
+            aspect="equal",
+            norm=norm,
+        )
+        axis[2, i].imshow(
+            res[i, 0, :, :],
+            interpolation="bilinear",
+            cmap=cm.RdBu,
+            origin="upper",
+            aspect="equal",
+        )
 
     for ax in axis.ravel():
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
     fig.subplots_adjust(wspace=0, hspace=0, left=0, right=1)
-    fig.suptitle('Reconstruction [Epoch %s]' % epoch,
-                 fontsize=20, y=.95)
+    fig.suptitle("Reconstruction [Epoch %s]" % epoch, fontsize=20, y=0.95)
     fig.canvas.draw()
     return fig
 
@@ -126,7 +139,7 @@ def days_hours_minutes(dt):
     d = dt.days
     h = totsec // 3600
     m = (totsec % 3600) // 60
-    sec = (totsec % 3600) % 60 #just for reference
+    sec = (totsec % 3600) % 60  # just for reference
     return d, h, m, sec
 
 
@@ -148,18 +161,22 @@ def plot_latent_space(z, y=None):
     fig
         image of matplotlib figure
     """
-    plt.close('all')
+    plt.close("all")
     if z.shape[1] > 8:
-        z = z[:,:8]
+        z = z[:, :8]
     df = pd.DataFrame(z)
     if y is not None:
-        df.loc[:, 'y'] = y
-    pp = sb.pairplot(df,
-                     hue='y' if y is not None else None,
-                     hue_order=sorted(set(y)) if y is not None else None,
-                     diag_kind="hist", markers=".", height=2,
-                     plot_kws=dict(s=30, edgecolors='face', alpha=.8),
-                     diag_kws=dict(element='step'))
+        df.loc[:, "y"] = y
+    pp = sb.pairplot(
+        df,
+        hue="y" if y is not None else None,
+        hue_order=sorted(set(y)) if y is not None else None,
+        diag_kind="hist",
+        markers=".",
+        height=2,
+        plot_kws=dict(s=30, edgecolors="face", alpha=0.8),
+        diag_kws=dict(element="step"),
+    )
 
     plt.tight_layout()
     pp.fig.canvas.draw()
@@ -167,7 +184,7 @@ def plot_latent_space(z, y=None):
 
 
 def str2bool(v):
-    """Convert strings (y,yes, true, t, 1,n, no,false, f,0) 
+    """Convert strings (y,yes, true, t, 1,n, no,false, f,0)
     to boolean values
 
     Parameters
@@ -182,16 +199,17 @@ def str2bool(v):
     """
     if isinstance(v, bool):
         return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    if v.lower() in ("yes", "true", "t", "y", "1"):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif v.lower() in ("no", "false", "f", "n", "0"):
         return False
     else:
         import argparse
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def scatter_hue(x, y, labels, disc=True, c_label=''):
+def scatter_hue(x, y, labels, disc=True, c_label=""):
     """Creates a wall of light curves plot with real and reconstruction
     sequences, paper-ready.
 
@@ -218,14 +236,14 @@ def scatter_hue(x, y, labels, disc=True, c_label=''):
         c = cm.Dark2_r(np.linspace(0, 1, len(set(labels))))
         for i, cls in enumerate(set(labels)):
             idx = np.where(labels == cls)[0]
-            plt.scatter(x[idx], y[idx], marker='.', s=20,
-                        color=c[i], alpha=.7, label=cls)
+            plt.scatter(
+                x[idx], y[idx], marker=".", s=20, color=c[i], alpha=0.7, label=cls
+            )
     else:
-        plt.scatter(x, y, marker='.', s=20,
-                    c=labels, cmap='coolwarm_r', alpha=.7)
+        plt.scatter(x, y, marker=".", s=20, c=labels, cmap="coolwarm_r", alpha=0.7)
         plt.colorbar(label=c_label)
 
-    plt.xlabel('embedding 1')
-    plt.ylabel('embedding 2')
-    plt.legend(loc='best', fontsize='x-large')
+    plt.xlabel("embedding 1")
+    plt.ylabel("embedding 2")
+    plt.legend(loc="best", fontsize="x-large")
     plt.show()

@@ -14,7 +14,7 @@ class EarlyStopping:
             How long to wait after last time validation loss improved.
             Default: 7
         min_delta : float
-            Minimum change in monitored value to qualify as 
+            Minimum change in monitored value to qualify as
             improvement. This number should be positive.
             Default: 0
         verbose   : bool
@@ -37,7 +37,7 @@ class EarlyStopping:
             self.best_score = current_loss
         elif torch.abs(current_loss - self.best_score) < self.min_delta:
             self.counter += 1
-            print(f'EarlyStopping counter: {self.counter} / {self.patience}')
+            print(f"EarlyStopping counter: {self.counter} / {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
