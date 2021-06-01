@@ -81,7 +81,7 @@ Training logs and models are stored at W&B here:
 
 ## Dependencies
 
-We use poetry to manage dependencies and environment. First install poetry:
+We use `poetry` to manage dependencies and environment. First install poetry:
 
 ```
 pip install poetry
@@ -93,6 +93,7 @@ poetry inside the repo directory:
 poetry install
 ```
 
+More info on how to use `poetry` -> https://python-poetry.org/docs/
 
 ## Sources and inspiration
 
