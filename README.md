@@ -21,7 +21,7 @@ with a wide variety of shapes and sizes.
 Each image is associated with the physical parameters used to simulate the source.
 We used 8 physical parameters to as inputs to MCFOST:
 
-'''
+```python
     m_dust = 'mass of the dust'
     Rc     = 'critical radius when exp drops(size)'
     f_exp  = 'flare exponent'
@@ -30,7 +30,7 @@ We used 8 physical parameters to as inputs to MCFOST:
     sd_exp = 'surface density exponent'
     alpha  = 'dust stettling'
     inc    = 'inclination'
-'''
+```
 
 All physical parameters where sampled from a evenly spaced grid and a random sampling
 between the range of possible values in order to fill up the gaps.
