@@ -79,6 +79,21 @@ Edge-on images (upper row), AE reconstruction (middle), and residuals (lower row
 Training logs and models are stored at W&B here:
  https://wandb.ai/deep_ppd/PPD-AE
 
+## Dependencies
+
+We use poetry to manage dependencies and environment. First install poetry:
+
+```
+pip install poetry
+```
+
+Then install the necessary libraries listed in `poetry.toml` using the install command from
+poetry inside the repo directory:
+```
+poetry install
+```
+
+
 ## Sources and inspiration
 
 * https://www.jeremyjordan.me/variational-autoencoders/
