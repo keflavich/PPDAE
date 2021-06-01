@@ -18,7 +18,6 @@ functions:
 import os, re, glob
 import socket
 import numpy as np
-import pandas as pd
 import matplotlib
 
 if socket.gethostname() == "exalearn":
@@ -26,7 +25,6 @@ if socket.gethostname() == "exalearn":
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
-import seaborn as sb
 
 path = os.path.dirname(os.getcwd())
 

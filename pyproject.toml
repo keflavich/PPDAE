@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "ppd-ae"
+version = "0.1.0"
+description = "Autoencoder model to generate images od edge-on protoplanetary disks."
+authors = ["Jorge Martinez-Palomera <jorgemarpa@ug.uchile.cl>"]
+license = "MIT"
+
+[tool.coverage.path]
+source = ["src"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+torch = "^1.6"
+numpy = "^1.18"
+wandb = "^0.10.4"
+torchvision = "^0.7"
+matplotlib = "^3.3.2"
+scikit-learn = "^0.22"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
