@@ -6,7 +6,7 @@ from src.utils import plot_recon_wall, plot_latent_space
 from src.training_callbacks import EarlyStopping
 
 
-class Trainer():
+class Trainer(object):
     """
     A training class for VAE model. Incorporate batch-training/testing loop,
     training callbacks, lerning rate scheduler, W&B logger with metrics reports and
@@ -42,9 +42,17 @@ class Trainer():
           machine='local', save=True, early_stop=False)
         complete epoch training/validation/report loop
     """
-    def __init__(self, model, optimizer, batch_size, wandb,
-                 scheduler=None, print_every=50,
-                 device='cpu'):
+
+    def __init__(
+        self,
+        model,
+        optimizer,
+        batch_size,
+        wandb,
+        scheduler=None,
+        print_every=50,
+        device="cpu",
+    ):
         """
         Parameters
         ----------
@@ -69,22 +77,21 @@ class Trainer():
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             self.model = nn.DataParallel(self.model)
         self.model.to(self.device)
-        print('Is model in cuda? ', next(self.model.parameters()).is_cuda)
+        print("Is model in cuda? ", next(self.model.parameters()).is_cuda)
         self.opt = optimizer
         self.sch = scheduler
         self.batch_size = batch_size
-        self.train_loss = {'Loss': []}
-        self.test_loss = {'Loss': []}
+        self.train_loss = {"Loss": []}
+        self.test_loss = {"Loss": []}
         self.num_steps = 0
         self.print_every = print_every
-        self.mse_loss = nn.MSELoss(reduction='mean')
-        self.bce_loss = nn.BCELoss(reduction='mean')
+        self.mse_loss = nn.MSELoss(reduction="mean")
+        self.bce_loss = nn.BCELoss(reduction="mean")
         self.wb = wandb
-
 
     def _loss(self, x, xhat, train=True, ep=0):
         """Evaluates loss function and add reports to the logger.
-        
+
         Parameters
         ----------
         x      : tensor
@@ -103,9 +110,9 @@ class Trainer():
         loss = self.bce_loss(xhat, x)
 
         if train:
-            self.train_loss['Loss'].append(loss.item())
+            self.train_loss["Loss"].append(loss.item())
         else:
-            self.test_loss['Loss'].append(loss.item())
+            self.test_loss["Loss"].append(loss.item())
 
         return loss
 
@@ -136,7 +143,7 @@ class Trainer():
             xhat, z = self.model(img, phy=phy)
             # calculate loss value
             loss = self._loss(img, xhat, train=True, ep=epoch)
-            # calculate the gradients
+            #  calculate the gradients
             loss.backward()
             # perform optimization step accordig to the gradients
             self.opt.step()
@@ -147,25 +154,24 @@ class Trainer():
             if i == len(data_loader) - 2:
                 xhat_plot = xhat.data.cpu().numpy()
                 x_plot = img.data.cpu().numpy()
-            #if i == 1:
+            # if i == 1:
             #    print('WARNING: using only 1st batch')
             #    break
 
         z_all = np.concatenate(z_all)
-        z_all = z_all[np.random.choice(z_all.shape[0], 5000,
-                                       replace=False), :]
+        z_all = z_all[np.random.choice(z_all.shape[0], 5000, replace=False), :]
         print(z_all.shape)
 
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:
             wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch, log=True)
-            self.wb.log({'Train_Recon':  self.wb.Image(wall)},
-                        step=self.num_steps)
+            self.wb.log({"Train_Recon": self.wb.Image(wall)}, step=self.num_steps)
 
         if epoch % 2 == 0:
             latent_plot = plot_latent_space(z_all, y=None)
-            self.wb.log({'Latent_space': self.wb.Image(latent_plot)},
-                        step=self.num_steps)
+            self.wb.log(
+                {"Latent_space": self.wb.Image(latent_plot)}, step=self.num_steps
+            )
 
     def _test_epoch(self, test_loader, epoch):
         """Testing loop for a given epoch. Triningo goes over
@@ -197,7 +203,7 @@ class Trainer():
                 if i == len(test_loader) - 2:
                     xhat_plot = xhat.data.cpu().numpy()
                     x_plot = img.data.cpu().numpy()
-                #if i == 1:
+                # if i == 1:
                 #    print('WARNING: using only 1st batch')
                 #    break
 
@@ -206,13 +212,11 @@ class Trainer():
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:
             wall = plot_recon_wall(xhat_plot, x_plot, epoch=epoch, log=True)
-            self.wb.log({'Test_Recon':  self.wb.Image(wall)},
-                        step=self.num_steps)
+            self.wb.log({"Test_Recon": self.wb.Image(wall)}, step=self.num_steps)
 
         return loss
 
-    def train(self, train_loader, test_loader, epochs,
-              save=True, early_stop=False):
+    def train(self, train_loader, test_loader, epochs, save=True, early_stop=False):
         """Full training loop over all epochs. Model is saved after
         training is finished.
         Parameters
@@ -234,14 +238,13 @@ class Trainer():
 
         # hold samples, real and generated, for initial plotting
         if early_stop:
-            early_stopping = EarlyStopping(patience=10, min_delta=.1,
-                                           verbose=True)
+            early_stopping = EarlyStopping(patience=10, min_delta=0.1, verbose=True)
 
         # train for n number of epochs
         time_start = datetime.datetime.now()
         for epoch in range(1, epochs + 1):
             e_time = datetime.datetime.now()
-            print('##'*20)
+            print("##" * 20)
             print("\nEpoch {}".format(epoch))
 
             # train and validate
@@ -250,9 +253,8 @@ class Trainer():
 
             # update learning rate according to cheduler
             if self.sch is not None:
-                self.wb.log({'LR': self.opt.param_groups[0]['lr']},
-                            step=self.num_steps)
-                if 'ReduceLROnPlateau' == self.sch.__class__.__name__:
+                self.wb.log({"LR": self.opt.param_groups[0]["lr"]}, step=self.num_steps)
+                if "ReduceLROnPlateau" == self.sch.__class__.__name__:
                     self.sch.step(val_loss)
                 else:
                     self.sch.step()
@@ -260,9 +262,9 @@ class Trainer():
             # report elapsed time per epoch and total run tume
             epoch_time = datetime.datetime.now() - e_time
             elap_time = datetime.datetime.now() - time_start
-            print('Time per epoch: ', epoch_time.seconds, ' s')
-            print('Elapsed time  : %.2f m' % (elap_time.seconds/60))
-            print('##'*20)
+            print("Time per epoch: ", epoch_time.seconds, " s")
+            print("Elapsed time  : %.2f m" % (elap_time.seconds / 60))
+            print("##" * 20)
 
             # early stopping
             if early_stop:
@@ -272,8 +274,7 @@ class Trainer():
                     break
 
         if save:
-            torch.save(self.model.state_dict(), '%s/model.pt' %
-                       (self.wb.run.dir))
+            torch.save(self.model.state_dict(), "%s/model.pt" % (self.wb.run.dir))
 
     def _report_train(self, i):
         """Report training metrics to logger and standard output.
@@ -287,13 +288,13 @@ class Trainer():
         # ------------------------ Reports ---------------------------- #
         # print scalars to std output and save scalars/hist to W&B
         if i % self.print_every == 0:
-            print("Training iteration %i, global step %i" %
-                  (i + 1, self.num_steps))
-            print("Loss: %.6f" % (self.train_loss['Loss'][-1]))
+            print("Training iteration %i, global step %i" % (i + 1, self.num_steps))
+            print("Loss: %.6f" % (self.train_loss["Loss"][-1]))
 
-            self.wb.log({'Train_Loss': self.train_loss['Loss'][-1]},
-                        step=self.num_steps)
-            print("__"*20)
+            self.wb.log(
+                {"Train_Loss": self.train_loss["Loss"][-1]}, step=self.num_steps
+            )
+            print("__" * 20)
 
     def _report_test(self, ep):
         """Report testing metrics to logger and standard output.
@@ -306,10 +307,9 @@ class Trainer():
         """
         # ------------------------ Reports ---------------------------- #
         # print scalars to std output and save scalars/hist to W&B
-        print('*** TEST LOSS ***')
+        print("*** TEST LOSS ***")
         print("Epoch %i, global step %i" % (ep, self.num_steps))
-        print("Loss: %.6f" % (self.test_loss['Loss'][-1]))
+        print("Loss: %.6f" % (self.test_loss["Loss"][-1]))
 
-        self.wb.log({'Test_Loss': self.test_loss['Loss'][-1]},
-                    step=self.num_steps)
-        print("__"*20)
+        self.wb.log({"Test_Loss": self.test_loss["Loss"][-1]}, step=self.num_steps)
+        print("__" * 20)
