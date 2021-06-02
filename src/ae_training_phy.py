@@ -133,7 +133,8 @@ class Trainer():
             img = img.to(self.device)
             phy = phy.to(self.device)
 
-            xhat, z = self.model(img, phy=phy)
+            #xhat, z = self.model(img, phy=phy)
+            xhat, z = self.model(phy)
             # calculate loss value
             loss = self._loss(img, xhat, train=True, ep=epoch)
             # calculate the gradients
