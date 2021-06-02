@@ -459,7 +459,7 @@ class ConvLin_AE(nn.Module):
         return xhat, z
 
 
-'''
+
 class ConvLinTrans_AE(nn.Module):
     """
     Autoencoder class with user defined latent dimension, image size,
@@ -658,7 +658,7 @@ class ConvLinTrans_AE(nn.Module):
         z = self.encode(x, phy=phy)
         xhat = self.decode(z, phy=phy)
         return xhat, z
-'''
+
 
 
 class ResLinTrans_AE(nn.Module):
@@ -1046,35 +1046,25 @@ class ConvLinUpsample_AE(nn.Module):
         return xhat, z
 
 
-##########Temp###################
-class ConvLinTrans_AE(nn.Module):
+##########Foward pass model###################
+class Forward_AE(nn.Module):
 
-    def __init__(self, latent_dim=32, img_dim=28, dropout=.2, in_ch=1,
-                 kernel=3, n_conv_blocks=5, phy_dim=0, feed_phy=True):
+    def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8):
         """
         Parameters
         ----------
-        latent_dim : int
-            size of the dimensilatent space
         img_dim    : int
             image size, only one dimension, assuming square ratio.
         dropout    : float
             dropout probability
         in_ch      : int
             number of channels in input/output image
-        kernel     : int
-            size of the convolving kernel
-        n_conv_blocks : int
-            number of [conv + relu + maxpooling] blocks
         """
         super(ConvLinTrans_AE, self).__init__()
-        self.latent_dim = latent_dim
         self.img_width = self.img_height = img_dim
         self.img_size = self.img_width * self.img_height
         self.in_ch = in_ch
         self.phy_dim = phy_dim
-        self.feed_phy = feed_phy
-
 
         # Decoder specification
         self.dec_linear = nn.Sequential(
@@ -1128,7 +1118,7 @@ class ConvLinTrans_AE(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self,phy):
+    def forward(self, phy):
         """
         Parameters
         ----------
@@ -1142,6 +1132,6 @@ class ConvLinTrans_AE(nn.Module):
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
 
-        x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
+        z = F.interpolate(z, size=(self.img_width, self.img_height),
                           mode='nearest')
-        return x_hat, z
+        return z
