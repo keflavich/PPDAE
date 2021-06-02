@@ -1169,20 +1169,24 @@ class ConvLinTrans_AE(nn.Module):
             nn.Sigmoid()
         )
         
-    def forward(self, phy):
-        """
-        Parameters
-        __________
-        z : tensor
-            latent code [N, latent_dim]
-        Returns
-        _________
-            reconstructed image [N, C, H, W]
-        """
-        z = self.dec_linear(phy)
-        z = z.view(-1, 16, 16, 16)
-        z = self.dec_transconv(z)
-        x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
-                              mode='nearest') #where x-hat is the reconstructed image?
+    def forward(self, z, phy=None):
+            """
+            Parameters
+            ----------
+            z : tensor
+                latent code [N, latent_dim]
+            Returns
+            -------
+                reconstructed image [N, C, H, W]
+            """
+            if self.phy_dim > 0 and self.feed_phy and phy is not None:
+                z = torch.cat([z, phy], dim=1)
+            print(f'The size of the image when is inputed is {self.img_size} + {self.phy_dim}')
+            z = self.dec_linear(z)
+            z = z.view(-1, 16, 16, 16)
+            z = self.dec_transconv(z)
 
-        return x_hat, z
+            x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
+                              mode='nearest')
+            print(f'The size of the image when is outputted is {x_hat.shape}')
+            return x_hat, z
