@@ -1128,7 +1128,7 @@ class ConvLinTrans_AE(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, z, phy=None):
+    def forward(self,phy):
         """
         Parameters
         ----------
@@ -1138,10 +1138,7 @@ class ConvLinTrans_AE(nn.Module):
         -------
             reconstructed image [N, C, H, W]
         """
-        if self.phy_dim > 0 and self.feed_phy and phy is not None:
-            z = torch.cat([z, phy], dim=1)
-        print(f'The size of the image when is inputed is {self.img_size} + {self.phy_dim}')
-        z = self.dec_linear(z)
+        z = self.dec_linear(phy)
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
 
