@@ -1169,30 +1169,8 @@ class ConvLinTrans_AE(nn.Module):
             nn.Sigmoid()
         )
         
-        def forward(self, phy):
-            """
-
-            Parameters
-            ----------
-            z : tensor
-                latent code [N, latent_dim]
-            Returns
-            -------
-                reconstructed image [N, C, H, W]
-            """
-            z = self.dec_linear(phy)
-            z = z.view(-1, 16, 16, 16)
-            z = self.dec_transconv(z)
-
-            x_hat = F.interpolate(z, size=(self.img_width, self.img_height), #where x-hat is the reconstructed image?
-                              mode='nearest')
-
-            return x_hat, z
-        
-        '''
-    def forward(self, z, phy=None):
+    def forward(self, phy):
         """
-
         Parameters
         ----------
         z : tensor
@@ -1201,12 +1179,10 @@ class ConvLinTrans_AE(nn.Module):
         -------
             reconstructed image [N, C, H, W]
         """
-        z = self.dec_linear(z)
+        z = self.dec_linear(phy)
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
+        x_hat = F.interpolate(z, size=(self.img_width, self.img_height), #where x-hat is the reconstructed image?
+                              mode='nearest')
 
-        x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
-                          mode='nearest')
-        
         return x_hat, z
-'''
