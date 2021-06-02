@@ -191,7 +191,7 @@ class Trainer():
                 phy = phy.to(self.device)
                 #xhat, z = self.model(img, phy=phy)
                 #temp training model
-                xhat, z = self.model(phy=phy)
+                xhat, z = self.model(phy)
                 
                 # calculate loss value
                 loss = self._loss(img, xhat, train=False, ep=epoch)
