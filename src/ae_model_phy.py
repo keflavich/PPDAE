@@ -1172,17 +1172,17 @@ class ConvLinTrans_AE(nn.Module):
     def forward(self, phy):
         """
         Parameters
-        ----------
+        __________
         z : tensor
             latent code [N, latent_dim]
         Returns
-        -------
+        _________
             reconstructed image [N, C, H, W]
         """
         z = self.dec_linear(phy)
         z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
-        x_hat = F.interpolate(z, size=(self.img_width, self.img_height), #where x-hat is the reconstructed image?
-                              mode='nearest')
+        x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
+                              mode='nearest') #where x-hat is the reconstructed image?
 
         return x_hat, z
