@@ -62,7 +62,7 @@ def plot_recon_wall(xhat, x, epoch=0, log=True):
             # if imgs are stand then linthresh=1, linscale=100
             # if imgs are [0,1] then linthresh=.0005, linscale=100
             norm = colors.SymLogNorm(
-                linthresh=0.005, linscale=5, vmin=v_min, vmax=v_max, base=10.0
+                linthresh=0.005, linscale=1, vmin=v_min, vmax=v_max, base=10.0
             )
         else:
             norm = None
