@@ -154,6 +154,11 @@ def run_code():
                                    n_conv_blocks=args.conv_blocks,
                                    phy_dim=wandb.config.physics_dim,
                                    feed_phy=str2bool(args.feed_phy))
+    elif args.model_name == 'Forward_AE':
+        model = Forward_AE(img_dim=dataset.img_dim,
+                                   dropout=args.dropout,
+                                   in_ch=dataset.img_channels,
+                                   phy_dim=wandb.config.physics_dim)
         
     else:
         print('Wrong Model Name.')
@@ -208,7 +213,12 @@ def run_code():
     print('########################################')
 
     # initialize trainer
-    trainer = Trainer(model, optimizer, args.batch_size, wandb,
+    if args.model_name == 'Forward_AE':
+      trainer = src.ae_forward_trainer_phy.Trainer(model, optimizer, args.batch_size, wandb,
+                      scheduler=scheduler, print_every=100,
+                      device=device)
+    else:
+      trainer = Trainer(model, optimizer, args.batch_size, wandb,
                       scheduler=scheduler, print_every=100,
                       device=device)
 
