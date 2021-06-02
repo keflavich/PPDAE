@@ -1144,5 +1144,4 @@ class ConvLinTrans_AE(nn.Module):
 
         x_hat = F.interpolate(z, size=(self.img_width, self.img_height),
                           mode='nearest')
-        print(f'The size of the image when is outputted is {x_hat.shape}')
         return x_hat, z
