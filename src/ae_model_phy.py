@@ -1060,7 +1060,7 @@ class Forward_AE(nn.Module):
         in_ch      : int
             number of channels in input/output image
         """
-        super(ConvLinTrans_AE, self).__init__()
+        super(Forward_AE, self).__init__()
         self.img_width = self.img_height = img_dim
         self.img_size = self.img_width * self.img_height
         self.in_ch = in_ch
