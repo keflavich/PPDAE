@@ -214,7 +214,8 @@ def run_code():
 
     # initialize trainer
     if args.model_name == 'Forward_AE':
-      trainer = src.ae_forward_trainer_phy.Trainer(model, optimizer, args.batch_size, wandb,
+      from src.ae_forward_trainer_phy import Trainer
+      trainer = Trainer(model, optimizer, args.batch_size, wandb,
                       scheduler=scheduler, print_every=100,
                       device=device)
     else:
