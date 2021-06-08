@@ -46,6 +46,8 @@ parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
                     help='physical parameters are 0-1 scaled ([T],F)')
 parser.add_argument('--subset', dest='subset', type=str, default='',
                     help='data subset ([],fexp1)')
+parser.add_argument('--part-num', dest='par_num', type=int, 
+                    default=1, help='partition batch number ([1],2,3,4,5)')
 
 parser.add_argument('--optim', dest='optim', type=str, default='Adam',
                     help='Optimiazer ([Adam], SGD)')
@@ -96,7 +98,7 @@ def run_code():
     if args.data == 'PPD':
         dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
                                       par_norm=str2bool(args.par_norm),
-                                      subset=args.subset, image_norm=args.img_norm)
+                                      subset=args.subset, image_norm=args.img_norm, par_num=args.par_num)
     elif args.data == 'MNIST':
         dataset = MNIST(args.machine)
     else:
