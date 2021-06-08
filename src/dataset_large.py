@@ -130,14 +130,8 @@ class ProtoPlanetaryDisks(Dataset):
         self.par_train = np.load('%s/param_arr_gridandfiller%s_train_all.npy' %
                                  (ppd_path, subset))
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller_%snorm%s_train_%s.npy' %
-                                           (ppd_path, image_norm, subset, par_num)))
-        self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
-        self.start_indices = [0] * len(self.imgs_paths)
-        self.data_count = 0
-        for index, memmap in enumerate(self.imgs_memmaps):
-            self.start_indices[index] = self.data_count
-            self.data_count += memmap.shape[0]
+        self.imgs_train =np.load('%s/img_array_gridandfiller_%snorm%s_train_%s.npy' % 
+                                 (ppd_path, image_norm, subset, par_num))
         
         
         self.par_names = ['m_dust', 'Rc', 'f_exp', 'H0',
@@ -163,9 +157,7 @@ class ProtoPlanetaryDisks(Dataset):
     
 
     def __getitem__(self, index):
-        memmap_index = bisect(self.start_indices, index) - 1
-        index_in_memmap = index - self.start_indices[memmap_index]
-        img = self.imgs_memmaps[memmap_index][index_in_memmap]
+        img = self.imgs_memmaps[index]
         par = self.par_train[index]
         if self.transform:
             img = self.transform_fx(img)
@@ -204,7 +196,7 @@ class ProtoPlanetaryDisks(Dataset):
             val_loader = None
         else:
             # Creating data indices for training and val splits:
-            dataset_size = self.data_count #len(self.par_train)
+            dataset_size = len(self.imgs_train)
             indices = list(range(dataset_size))
             split = int(np.floor(val_split * dataset_size))
             if shuffle:
