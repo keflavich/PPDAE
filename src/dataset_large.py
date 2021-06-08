@@ -127,8 +127,8 @@ class ProtoPlanetaryDisks(Dataset):
         if subset != '':
             subset = '_%s' % (subset)
             
-        self.par_train = np.load('%s/param_arr_gridandfiller%s_train_all.npy' %
-                                 (ppd_path, subset))
+        self.par_train = np.load('%s/param_arr_gridandfiller%s_train_%s.npy' %
+                                 (ppd_path, subset, par_num))
         
         self.imgs_train =np.load('%s/img_array_gridandfiller_%snorm%s_train_%s.npy' % 
                                  (ppd_path, image_norm, subset, par_num))
@@ -157,7 +157,7 @@ class ProtoPlanetaryDisks(Dataset):
     
 
     def __getitem__(self, index):
-        img = self.imgs_memmaps[index]
+        img = self.imgs_train[index]
         par = self.par_train[index]
         if self.transform:
             img = self.transform_fx(img)
