@@ -204,7 +204,7 @@ class ProtoPlanetaryDisks(Dataset):
             val_loader = None
         else:
             # Creating data indices for training and val splits:
-            dataset_size = len(self.par_train)
+            dataset_size = self.data_count #len(self.par_train)
             indices = list(range(dataset_size))
             split = int(np.floor(val_split * dataset_size))
             if shuffle:
