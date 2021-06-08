@@ -101,7 +101,7 @@ class ProtoPlanetaryDisks(Dataset):
         return a dataloader object for trainning and testing
     """
     def __init__(self, machine='exalearn', transform=True, par_norm=False,
-                 subset='25052021', image_norm='global'):
+                 subset='25052021', image_norm='global', par_num=1):
         """
         Parameters
         ----------
@@ -112,6 +112,8 @@ class ProtoPlanetaryDisks(Dataset):
         par_norm   : bool, optional
             load parameters that are scaled to [0,1] when True, or raw images
             when False.
+        par_num    : int, optional
+            choose the partition to use during training [1,5].
         """
         if machine == 'local':
             ppd_path = '%s/data/PPD/partitions' % (root)
@@ -128,8 +130,8 @@ class ProtoPlanetaryDisks(Dataset):
         self.par_train = np.load('%s/param_arr_gridandfiller%s_train_all.npy' %
                                  (ppd_path, subset))
         
-        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller_%snorm%s_train_*.npy' %
-                                           (ppd_path, image_norm, subset)))
+        self.imgs_paths = sorted(glob.glob('%s/img_array_gridandfiller_%snorm%s_train_%s.npy' %
+                                           (ppd_path, image_norm, subset, par_num)))
         self.imgs_memmaps = [np.load(path, mmap_mode='r') for path in self.imgs_paths]
         self.start_indices = [0] * len(self.imgs_paths)
         self.data_count = 0
