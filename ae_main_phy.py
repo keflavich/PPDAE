@@ -17,7 +17,7 @@ import torch.optim as optim
 import numpy as np
 from src.dataset_large import ProtoPlanetaryDisks
 from src.ae_model_phy import *
-from src.ae_training_phy import Trainer
+from src.ae_forward_trainer_phy import Trainer
 from src.utils import count_parameters, str2bool
 import wandb
 
@@ -37,17 +37,14 @@ parser.add_argument('--dry-run', dest='dry_run', action='store_true',
                     help='Load data and initialize models [False]')
 parser.add_argument('--machine', dest='machine', type=str, default='local',
                     help='were to is running (local, colab, [exalearn])')
-
-parser.add_argument('--data', dest='data', type=str, default='PPD',
-                    help='data used for training (MNIST, [PPD])')
 parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
                     help='type of normalization for images ([global], image)')
 parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
                     help='physical parameters are 0-1 scaled ([T],F)')
-parser.add_argument('--subset', dest='subset', type=str, default='',
-                    help='data subset ([],fexp1)')
+parser.add_argument('--subset', dest='subset', type=str, default='25052021',
+                    help='data subset ([25052021],fexp1)')
 parser.add_argument('--part-num', dest='par_num', type=int, 
-                    default=1, help='partition batch number ([1],2,3,4,5)')
+                    default=1, help='partition subset number ([1],2,3,4,5)')
 
 parser.add_argument('--optim', dest='optim', type=str, default='Adam',
                     help='Optimiazer ([Adam], SGD)')
@@ -67,19 +64,16 @@ parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='F',
                     help='feed physics to decoder ([F],T)')
-parser.add_argument('--latent-dim', dest='latent_dim', type=int, default=32,
-                    help='dimension of latent space [32]')
+#erases latent dimension option, conv_blocks, data (args.data)
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
 parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
                     help='2D conv kernel size, encoder [3]')
-parser.add_argument('--conv-blocks', dest='conv_blocks', type=int, default=5,
-                    help='conv+actfx+pool blocks [5]')
 parser.add_argument('--model-name', dest='model_name', type=str, 
-                    default='ConvLinTrans_AE', help='name of model')
+                    default='Forward_AE', help='name of model ([Forward_AE], Dev_Forward_AE)')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
-                    help='extra comments')
+                    help='extra comments for runtime labels')
 args = parser.parse_args()
 
 # Initialize W&B project and save user defined flags
@@ -95,15 +89,9 @@ def run_code():
     if device.type == 'cuda':
         torch.cuda.empty_cache()
     # Load Data #
-    if args.data == 'PPD':
-        dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
-                                      par_norm=str2bool(args.par_norm),
-                                      subset=args.subset, image_norm=args.img_norm, par_num=args.par_num)
-    elif args.data == 'MNIST':
-        dataset = MNIST(args.machine)
-    else:
-        print('Error: Wrong dataset (MNIST, Proto Planetary Disk)...')
-        raise
+    dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
+                                  par_norm=str2bool(args.par_norm),
+                                  subset=args.subset, image_norm=args.img_norm, par_num=args.par_num)
 
     if len(dataset) == 0:
         print('No items in training set...')
@@ -116,55 +104,29 @@ def run_code():
                                                          shuffle=True,
                                                          val_split=.2,
                                                          random_seed=rnd_seed)
-
-    if args.data == 'PPD' and str2bool(args.cond):
-        wandb.config.physics_dim = len(dataset.par_names)
-    else:
-        wandb.config.physics_dim = 0
-        args.feed_phy = 'F'
+      
+    wandb.config.physics_dim = len(dataset.par_names)
     wandb.config.update(args, allow_val_change=True)
 
     print('Physic dimension: ', wandb.config.physics_dim)
 
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
-    # different types of AE models are stored in src/ae_model.py
-    if args.model_name == 'ConvLinTrans_AE':
-        model = ConvLinTrans_AE(latent_dim=args.latent_dim,
-                                img_dim=dataset.img_dim,
-                                dropout=args.dropout,
-                                in_ch=dataset.img_channels,
-                                kernel=args.kernel_size,
-                                n_conv_blocks=args.conv_blocks,
-                                phy_dim=wandb.config.physics_dim,
-                                feed_phy=str2bool(args.feed_phy))
-    elif args.model_name == 'ConvLin_AE':
-        model = ConvLin_AE(latent_dim=args.latent_dim,
-                           img_dim=dataset.img_dim,
-                           dropout=args.dropout,
-                           in_ch=dataset.img_channels,
-                           kernel=args.kernel_size,
-                           n_conv_blocks=args.conv_blocks,
-                           phy_dim=wandb.config.physics_dim,
-                           feed_phy=str2bool(args.feed_phy))
-    elif args.model_name == 'ConvLinUpsample_AE':
-        model = ConvLinUpsample_AE(latent_dim=args.latent_dim,
-                                   img_dim=dataset.img_dim,
+    # different types of AE models are stored in src/ae_model_phy.py
+    if args.model_name == 'Forward_AE':
+        model = Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
-                                   kernel=args.kernel_size,
-                                   n_conv_blocks=args.conv_blocks,
-                                   phy_dim=wandb.config.physics_dim,
-                                   feed_phy=str2bool(args.feed_phy))
-    elif args.model_name == 'Forward_AE':
-        model = Forward_AE(img_dim=dataset.img_dim,
+                                   phy_dim=wandb.config.physics_dim)
+    elif args.model_name == 'Dev_Forward_AE':
+        model = Dev_Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
                                    phy_dim=wandb.config.physics_dim)
         
     else:
         print('Wrong Model Name.')
-        print('Please select model: ConvLinTrans_AE')
+        print('Please select model: Forward_AE or Dev_Forward_AE')
         sys.exit()
     
     # log model architecture and gradients to wandb
@@ -177,14 +139,8 @@ def run_code():
     print('\n')
 
     # Initialize optimizers
-    if args.optim == 'Adam':
-        optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
-    elif args.optim == 'SGD':
-        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    else:
-        print('Error: please select a optimazer from Adam or SGD...')
-        raise
-
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+   
     # Learning Rate scheduler
     if args.lr_sch == 'step':
         scheduler = optim.lr_scheduler.StepLR(optimizer,
@@ -213,15 +169,9 @@ def run_code():
     print('########################################')
     print('########  Running in %4s  #########' % (device))
     print('########################################')
-
+    
     # initialize trainer
-    if args.model_name == 'Forward_AE':
-      from src.ae_forward_trainer_phy import Trainer
-      trainer = Trainer(model, optimizer, args.batch_size, wandb,
-                      scheduler=scheduler, print_every=100,
-                      device=device)
-    else:
-      trainer = Trainer(model, optimizer, args.batch_size, wandb,
+    trainer = Trainer(model, optimizer, args.batch_size, wandb,
                       scheduler=scheduler, print_every=100,
                       device=device)
 
