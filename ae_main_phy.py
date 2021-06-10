@@ -37,7 +37,7 @@ parser.add_argument('--dry-run', dest='dry_run', action='store_true',
                     help='Load data and initialize models [False]')
 parser.add_argument('--machine', dest='machine', type=str, default='local',
                     help='were to is running (local, colab, [exalearn])')
-
+#erased latent dimension option, conv_blocks, data (args.data), args.optim, Kernel_size, lr_sch
 parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
                     help='type of normalization for images ([global], image)')
 parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
@@ -48,27 +48,20 @@ parser.add_argument('--part-num', dest='par_num', type=int,
                     default=1, help='partition subset number ([1],2,3,4,5)')
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
-parser.add_argument('--lr-sch', dest='lr_sch', type=str, default=None,
-                    help='learning rate shceduler '+
-                    '([None], step, exp, cosine, plateau)')
 parser.add_argument('--batch-size', dest='batch_size', type=int, default=32,
                     help='batch size [128]')
 parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=100,
                     help='total number of training epochs [100]')
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
-
 parser.add_argument('--transfrom', dest='transform', type=bool, default=True,
                     help='applies transformation to images ([True], False)')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
                     help='feed physics to decoder (F,[T)]')
-#erases latent dimension option, conv_blocks, data (args.data), args.optim
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
-parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
-                    help='2D conv kernel size, encoder [3]')
 parser.add_argument('--model-name', dest='model_name', type=str, 
                     default='Forward_AE', help='name of model ([Forward_AE], Dev_Forward_AE)')
 
@@ -140,31 +133,8 @@ def run_code():
 
     # Initialize optimizers
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
-   
-    # Learning Rate scheduler
-    if args.lr_sch == 'step':
-        scheduler = optim.lr_scheduler.StepLR(optimizer,
-                                              step_size=25,
-                                              gamma=0.5)
-    elif args.lr_sch == 'exp':
-        scheduler = optim.lr_scheduler.ExponentialLR(optimizer,
-                                                     gamma=0.985)
-    elif args.lr_sch == 'cos':
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                         T_max=25,
-                                                         eta_min=1e-5)
-    elif args.lr_sch == 'plateau':
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,
-                                                         mode='min',
-                                                         factor=.1,
-                                                         patience=10,
-                                                         threshold=1e-4,
-                                                         verbose=True)
-    else:
-        scheduler = None
 
     print('Optimizer    :', optimizer)
-    print('LR Scheduler :', scheduler.__class__.__name__)
 
     print('########################################')
     print('########  Running in %4s  #########' % (device))
