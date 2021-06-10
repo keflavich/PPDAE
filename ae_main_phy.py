@@ -37,6 +37,7 @@ parser.add_argument('--dry-run', dest='dry_run', action='store_true',
                     help='Load data and initialize models [False]')
 parser.add_argument('--machine', dest='machine', type=str, default='local',
                     help='were to is running (local, colab, [exalearn])')
+
 parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
                     help='type of normalization for images ([global], image)')
 parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
@@ -45,9 +46,6 @@ parser.add_argument('--subset', dest='subset', type=str, default='25052021',
                     help='data subset ([25052021],fexp1)')
 parser.add_argument('--part-num', dest='par_num', type=int, 
                     default=1, help='partition subset number ([1],2,3,4,5)')
-
-parser.add_argument('--optim', dest='optim', type=str, default='Adam',
-                    help='Optimiazer ([Adam], SGD)')
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
 parser.add_argument('--lr-sch', dest='lr_sch', type=str, default=None,
@@ -60,11 +58,13 @@ parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=100,
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
 
+parser.add_argument('--transfrom', dest='transform', type=bool, default=True,
+                    help='applies transformation to images ([True], False)')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
-parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='F',
-                    help='feed physics to decoder ([F],T)')
-#erases latent dimension option, conv_blocks, data (args.data)
+parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
+                    help='feed physics to decoder (F,[T)]')
+#erases latent dimension option, conv_blocks, data (args.data), args.optim
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
 parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
@@ -89,7 +89,7 @@ def run_code():
     if device.type == 'cuda':
         torch.cuda.empty_cache()
     # Load Data #
-    dataset = ProtoPlanetaryDisks(machine=args.machine, transform=True,
+    dataset = ProtoPlanetaryDisks(machine=args.machine, transform=args.transform,
                                   par_norm=str2bool(args.par_norm),
                                   subset=args.subset, image_norm=args.img_norm, par_num=args.par_num)
 
