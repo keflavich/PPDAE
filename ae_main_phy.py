@@ -54,7 +54,7 @@ parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=100,
                     help='total number of training epochs [100]')
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
-parser.add_argument('--transfrom', dest='transform', type=bool, default=True,
+parser.add_argument('--transform', dest='transform', type=bool, default=True,
                     help='applies transformation to images ([True], False)')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
@@ -142,8 +142,7 @@ def run_code():
     
     # initialize trainer
     trainer = Trainer(model, optimizer, args.batch_size, wandb,
-                      scheduler=scheduler, print_every=100,
-                      device=device)
+                      print_every=100, device=device)
 
     if args.dry_run:
         print('******** DRY RUN ******** ')
