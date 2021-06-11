@@ -54,8 +54,8 @@ parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=100,
                     help='total number of training epochs [100]')
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
-parser.add_argument('--transform', dest='transform', type=bool, default=True,
-                    help='applies transformation to images ([True], False)')
+parser.add_argument('--transform', dest='transform', type=str, default='T',
+                    help='applies transformation to images ([T], F)')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
@@ -82,7 +82,7 @@ def run_code():
     if device.type == 'cuda':
         torch.cuda.empty_cache()
     # Load Data #
-    dataset = ProtoPlanetaryDisks(machine=args.machine, transform=args.transform,
+    dataset = ProtoPlanetaryDisks(machine=args.machine, transform=str2bool(args.transform),
                                   par_norm=str2bool(args.par_norm),
                                   subset=args.subset, image_norm=args.img_norm, par_num=args.par_num)
 
