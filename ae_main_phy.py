@@ -56,6 +56,10 @@ parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
 parser.add_argument('--transform', dest='transform', type=str, default='T',
                     help='applies transformation to images ([T], F)')
+parser.add_argument('--stride', dest='stride', type=int, default=2,
+                    help='stride amount [2]')
+parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=4,
+                    help='Kernel size [4x4]')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
@@ -115,7 +119,9 @@ def run_code():
         model = Dev_Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
-                                   phy_dim=wandb.config.physics_dim)
+                                   phy_dim=wandb.config.physics_dim
+                                   Stride=args.stride,
+                                   kernel_size=args.kernel_size)
         
     else:
         print('Wrong Model Name.')
