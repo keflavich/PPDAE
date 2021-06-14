@@ -119,7 +119,7 @@ def run_code():
         model = Dev_Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
-                                   phy_dim=wandb.config.physics_dim
+                                   phy_dim=wandb.config.physics_dim,
                                    stride=args.stride,
                                    kernel_size=args.kernel_size)
         
