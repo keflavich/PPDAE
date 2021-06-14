@@ -120,7 +120,7 @@ def run_code():
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
                                    phy_dim=wandb.config.physics_dim
-                                   Stride=args.stride,
+                                   stride=args.stride,
                                    kernel_size=args.kernel_size)
         
     else:
