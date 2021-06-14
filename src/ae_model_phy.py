@@ -102,7 +102,7 @@ class Forward_AE(nn.Module):
 
 class Dev_Forward_AE(nn.Module):
 
-    def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8):
+    def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8, Stride=2, kernel_size=4):
         """
         Parameters
         ----------
@@ -148,27 +148,27 @@ class Dev_Forward_AE(nn.Module):
         
         #convolutional layers
         self.dec_transconv = nn.Sequential(
-            nn.ConvTranspose2d(16, 16, 4, stride=2, bias=False,
+            nn.ConvTranspose2d(16, 16,  kernel_size, stride=Stride, bias=False,
                                output_padding=1, padding=0),
             nn.Conv2d(16, 16, 4, bias=False),
             nn.BatchNorm2d(16, momentum=0.005),
             nn.ReLU(),
             
-            nn.Conv2d(16, 8, 4, bias=False),
+            nn.Conv2d(16, 8, kernel_size, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, 8, 4, stride=2, bias=False,
+            nn.ConvTranspose2d(8, 8, kernel_size, stride=Stride, bias=False,
                                output_padding=1, padding=0),
             
-            nn.Conv2d(8, 8, 4, bias=False),
+            nn.Conv2d(8, 8, kernel_size, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
             
-            nn.Conv2d(8, 4, 4, bias=False),
+            nn.Conv2d(8, 4, kernel_size, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
             ###output layer
-            nn.ConvTranspose2d(4, 4, 4, stride=2, bias=False,
+            nn.ConvTranspose2d(4, 4, kernel_size, stride=Stride, bias=False,
                                output_padding=1, padding=0),
             nn.Conv2d(4, in_ch, 7),
             nn.Sigmoid()
