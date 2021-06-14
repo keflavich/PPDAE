@@ -137,12 +137,12 @@ class Dev_Forward_AE(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
             
-            nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
-            nn.BatchNorm1d(16*16*16),
+            nn.Linear(16 * 8 * 8, 16 * 16 * 8, bias=False),
+            nn.BatchNorm1d(16*16*8),
             nn.ReLU(),
             nn.Dropout(dropout),
             #Last linear layer
-            nn.Linear(16 * 16 * 16, 16 * 16 * 2, bias=False), #double check math on output layer
+            nn.Linear(16 * 16 * 8, 16 * 16 * 16, bias=False), #double check math on output layer
             nn.ReLU()
         )
         
@@ -185,7 +185,7 @@ class Dev_Forward_AE(nn.Module):
             reconstructed image [N, C, H, W]
         """
         z = self.dec_linear(phy)
-        z = z.view(-1, 16, 16, 2)
+        z = z.view(-1, 16, 16, 16)
         z = self.dec_transconv(z)
 
         z = F.interpolate(z, size=(self.img_width, self.img_height),
