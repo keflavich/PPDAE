@@ -275,7 +275,7 @@ class Conv_Forward_AE(nn.Module):
                 "bn_%i" % (i + 1),
                 nn.BatchNorm2d(o_ch, momentum=0.005)
                 )
-                self.enc_conv_blocks.add_module(
+                self.conv.add_module(
                 "relu_%i" % (i + 1),
                 nn.ReLU()
                 )
@@ -287,10 +287,10 @@ class Conv_Forward_AE(nn.Module):
                 "conv2d_%i" % (i + 1),
                 nn.Conv2d(i_ch, o_ch, kernel_size, bias=False),
                 )
-                self.enc_conv_blocks.add_module(
+                self.conv.add_module(
                     "bn_%i" % (i + 1), nn.BatchNorm2d(o_ch, momentum=0.005)
                 )
-                self.enc_conv_blocks.add_module("relu_%i" % (i + 1), nn.ReLU())
+                self.conv.add_module("relu_%i" % (i + 1), nn.ReLU())
                 i_ch = o_ch
                 o_ch = o_ch//2
 
