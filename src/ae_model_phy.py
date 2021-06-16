@@ -262,7 +262,7 @@ class Conv_Forward_AE(nn.Module):
 
         for i in range(numb_conv - 1):
             if (i%2 == 0):
-                sefl.conv.add_module(
+                self.conv.add_module(
                 "ConvTranspose2d_%i" % (i+1),
                 nn.ConvTranspose2d(i_ch, o_ch, kernel_size, stride=stride, bias=False,
                                     output_padding=1, padding=0)
