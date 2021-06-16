@@ -233,7 +233,7 @@ class Conv_Forward_AE(nn.Module):
         h_ch *= 2
         for i in range(numb_lin-1):
             self.lin.add_module(
-            "linear_%" % (i+2),
+            "linear_%i" % (i+2),
             nn.Linear(16 * i_ch * i_ch, 16 * h_ch * h_ch, bias=False)
             )
             
@@ -264,7 +264,7 @@ class Conv_Forward_AE(nn.Module):
         for i in range(numb_conv - 1):
             if (i%2 == 0):
                 sefl.conv.add_module(
-                "ConvTranspose2d_%" % (i+1),
+                "ConvTranspose2d_%i" % (i+1),
                 nn.ConvTranspose2d(i_ch, o_ch, kernel_size, stride=stride, bias=False,
                                     output_padding=1, padding=0)
                 )
@@ -297,7 +297,7 @@ class Conv_Forward_AE(nn.Module):
 
         #output layers
         self.conv.add_module(
-        "ConvTransposed2d%" % (i+1),
+        "ConvTransposed2d%i" % (i+1),
         nn.ConvTranspose2d(i_ch, 4, kernel_size, stride=stride, bias=False,
                             output_padding=1, padding=0)
         )
@@ -306,7 +306,7 @@ class Conv_Forward_AE(nn.Module):
         nn.Conv2d(4, in_ch, 7)
         )
         self.conv.add_module(
-        "Sigmoid%" % (i+1),
+        "Sigmoid",
         nn.Sigmoid()
         )
 
