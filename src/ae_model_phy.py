@@ -322,7 +322,7 @@ class Conv_Forward_AE(nn.Module):
         """
         z = self.lin(phy)
         z = z.view(-1, 16, self.h_ch, self.h_ch)
-        z = self.dec_transconv(z)
+        z = self.conv(z)
 
         z = F.interpolate(z, size=(img_dim, img_dim),
                           mode='nearest')
