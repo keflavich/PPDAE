@@ -296,16 +296,10 @@ class Conv_Forward_AE(nn.Module):
 
         #output layers
         self.conv.add_module(
-        "ConvTransposed2d%i" % (i+1),
+        "ConvTransposed2d_output",
         nn.ConvTranspose2d(i_ch, 4, kernel_size, stride=stride, bias=False,
-                            output_padding=1, padding=0)
-        )
-        self.conv.add_module(
-        "conv2d_%i" % (i + 1),
-        nn.Conv2d(4, in_ch, 7)
-        )
-        self.conv.add_module(
-        "Sigmoid",
+                            output_padding=1, padding=0),
+        nn.Conv2d(4, in_ch, 7),
         nn.Sigmoid()
         )
 
