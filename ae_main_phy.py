@@ -58,7 +58,7 @@ parser.add_argument('--transform', dest='transform', type=str, default='T',
                     help='applies transformation to images ([T], F)')
 parser.add_argument('--stride', dest='stride', type=int, default=2,
                     help='stride amount [2]')
-parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=4,
+parser.add_argument('--kernel', dest='kernel_size', type=int, default=4,
                     help='Kernel size [4x4]')
 parser.add_argument('--numb-conv', dest='n_conv', type=int, default=5,
                     help='number of convolutional layers [5]')
@@ -67,7 +67,7 @@ parser.add_argument('--numb-lin', dest='n_lin', type=int, default=5,
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
-                    help='feed physics to decoder (F,[T)]')
+                    help='feed physics to decoder (F,[T])')
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
 parser.add_argument('--model-name', dest='model_name', type=str, 
