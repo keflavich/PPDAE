@@ -217,6 +217,7 @@ class Conv_Forward_AE(nn.Module):
 
         super(Conv_Forward_AE, self).__init__()
         self.in_ch = in_ch
+        self.img_dim = img_dim
 
         # Linear layers
         h_ch = 2
@@ -325,6 +326,6 @@ class Conv_Forward_AE(nn.Module):
         z = z.view(-1, 16, self.h_ch, self.h_ch)
         z = self.conv(z)
 
-        z = F.interpolate(z, size=(img_dim, img_dim),
+        z = F.interpolate(z, size=(self.img_dim, self.img_dim),
                           mode='nearest')
         return z
