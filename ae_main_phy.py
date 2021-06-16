@@ -35,8 +35,8 @@ parser = argparse.ArgumentParser(description='AutoEncoder')
 parser.add_argument('--dry-run', dest='dry_run', action='store_true',
                     default=False,
                     help='Load data and initialize models [False]')
-parser.add_argument('--machine', dest='machine', type=str, default='local',
-                    help='were to is running (local, colab, [exalearn])')
+parser.add_argument('--machine', dest='machine', type=str, default='colab',
+                    help='were to is running (local, [colab], exalearn)')
 #erased latent dimension option, conv_blocks, data (args.data), args.optim, Kernel_size, lr_sch
 parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
                     help='type of normalization for images ([global], image)')
@@ -60,6 +60,10 @@ parser.add_argument('--stride', dest='stride', type=int, default=2,
                     help='stride amount [2]')
 parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=4,
                     help='Kernel size [4x4]')
+parser.add_argument('--numb-conv', dest='n_conv', type=int, default=5,
+                    help='number of convolutional layers [5]')
+parser.add_argument('--numb-lin', dest='n_lin', type=int, default=5,
+                    help='number of linear layers [5]')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
@@ -67,7 +71,7 @@ parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
 parser.add_argument('--model-name', dest='model_name', type=str, 
-                    default='Forward_AE', help='name of model ([Forward_AE], Dev_Forward_AE)')
+                    default='Forward_AE', help='name of model ([Forward_AE], Dev_Forward_AE, Conv_Forward_AE)')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments for runtime labels')
@@ -125,6 +129,16 @@ def run_code():
                                    phy_dim=wandb.config.physics_dim,
                                    stride=args.stride,
                                    kernel_size=args.kernel_size)
+         
+    elif args.model_name == 'Conv_Forward_AE':
+        model = Conv_Forward_AE(img_dim=dataset.img_dim,
+                                   dropout=args.dropout,
+                                   in_ch=dataset.img_channels,
+                                   phy_dim=wandb.config.physics_dim,
+                                   stride=args.stride,
+                                   kernel_size=args.kernel_size,
+                                   numb_conv=args.n_conv,
+                                   numb_lin=args.n_lin)
         
     else:
         print('Wrong Model Name.')
