@@ -299,7 +299,6 @@ class Conv_Forward_AE(nn.Module):
         "ConvTransposed2d_output",
         nn.ConvTranspose2d(i_ch, 4, kernel_size, stride=stride, bias=False,
                             output_padding=1, padding=0))
-        )
         
         self.conv.add_module(
         "Conv2d_output",
