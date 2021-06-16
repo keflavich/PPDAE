@@ -228,7 +228,7 @@ class Conv_Forward_AE(nn.Module):
             nn.Dropout(dropout)
             )
             
-        i_ch = h_ch * h_ch
+        i_ch = h_ch
         h_ch *= 2
         for i in range(numb_lin-1):
             self.lin.add_module(
@@ -251,7 +251,7 @@ class Conv_Forward_AE(nn.Module):
                 "Dropout_%i" % (i + 2),
                 nn.Dropout(dropout)
                 )
-                i_ch = h_ch * h_ch
+                i_ch = h_ch
                 h_ch *= 2
         self.h_ch = h_ch
 
