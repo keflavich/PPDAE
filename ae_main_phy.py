@@ -35,8 +35,8 @@ parser = argparse.ArgumentParser(description='AutoEncoder')
 parser.add_argument('--dry-run', dest='dry_run', action='store_true',
                     default=False,
                     help='Load data and initialize models [False]')
-parser.add_argument('--machine', dest='machine', type=str, default='colab',
-                    help='were to is running (local, [colab], exalearn)')
+parser.add_argument('--machine', dest='machine', type=str, default='exalearn',
+                    help='were to is running (local, colab, [exalearn])')
 #erased latent dimension option, conv_blocks, data (args.data), args.optim, Kernel_size, lr_sch
 parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
                     help='type of normalization for images ([global], image)')
