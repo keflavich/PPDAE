@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-import math
 
 
 class Forward_AE(nn.Module):
@@ -259,7 +258,7 @@ class Conv_Forward_AE(nn.Module):
         #Convolutional layers
         self.conv = nn.Sequential()
         i_ch = 16
-        o_ch = math.ceil(i_ch * (numb_conv - 1))
+        o_ch = i_ch * (numb_conv - 1)
 
         for i in range(numb_conv - 1):
             if (i%2 == 0):
@@ -281,7 +280,7 @@ class Conv_Forward_AE(nn.Module):
                 nn.ReLU()
                 )
                 i_ch = o_ch
-                o_ch = math.ceil(o_ch/2)
+                o_ch = o_ch//2
 
             else:
                 self.conv.add_module(
@@ -293,7 +292,7 @@ class Conv_Forward_AE(nn.Module):
                 )
                 self.enc_conv_blocks.add_module("relu_%i" % (i + 1), nn.ReLU())
                 i_ch = o_ch
-                o_ch = math.ceil(o_ch/2)
+                o_ch = o_ch//2
 
         #output layers
         self.conv.add_module(
