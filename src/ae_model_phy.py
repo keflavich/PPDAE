@@ -142,7 +142,7 @@ class Dev_Forward_AE(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
             #Last linear layer
-            nn.Linear(16 * 16 * 8, 16 * 16 * 16, bias=False), #double check math on output layer
+            nn.Linear(16 * 16 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU()
         )
 
@@ -212,7 +212,11 @@ class Conv_Forward_AE(nn.Module):
             kernel size for the convolutional layers
         numb_conv  : int
             number of convolutional layers in the model. 5 by defalult.
-            Works best for <7 layers, anything higher might result in errors.
+            Works best for <=8 layers, anything higher might result in errors.
+            NOTE: Does not support 0 convolutional layers as it will always have
+            one minimum, by construction.
+        numb_lin   : int
+            number of linear layers in the model. 5 by defalult.
         """
 
         super(Conv_Forward_AE, self).__init__()
@@ -220,72 +224,64 @@ class Conv_Forward_AE(nn.Module):
         self.img_dim = img_dim
 
         # Linear layers
-        if (numb_lin > 5):
-            h_ch = 1
-        else:
-            h_ch = 2
-            
-        self.lin = nn.Sequential(
-            nn.Linear(phy_dim,
-                      16 * h_ch * h_ch, bias=False),
-            nn.BatchNorm1d(16 * h_ch * h_ch),
-            nn.ReLU(),
-            nn.Dropout(dropout)
-            )
+        h_ch = 2
+        self.lin = nn.Sequential()
+        i_ch = 1/(2**0.5) #Ensures first linear layer expects an input chanel of 8.
 
-        i_ch = h_ch
-        h_ch *= 2
-        for i in range(numb_lin-1):
+        for i in range(numb_lin):
             self.lin.add_module(
-            "linear_%i" % (i+2),
+            "linear_%i" % (i+1),
             nn.Linear(16 * i_ch * i_ch, 16 * h_ch * h_ch, bias=False)
             )
 
             self.lin.add_module(
-            "bn_%i" % (i + 2),
+            "bn_%i" % (i + 1),
             nn.BatchNorm1d(16 * h_ch * h_ch)
             )
 
             self.lin.add_module(
-            "relu_%i" % (i + 2),
+            "relu_%i" % (i + 1),
             nn.ReLU()
             )
 
-            if (i != numb_lin - 2):
+            if (i != numb_lin - 1):
                 self.lin.add_module(
                 "Dropout_%i" % (i + 2),
                 nn.Dropout(dropout)
                 )
                 i_ch = h_ch
-                h_ch *= 2
+                if (numb_lin > 4 and i >= 4):
+                    h_ch += 2
+                else:
+                    h_ch *= 2
         self.h_ch = h_ch
 
         #Convolutional layers
         self.conv = nn.Sequential()
         i_ch = 16
-        o_ch = i_ch * (numb_conv - 1)
+        #o_ch = i_ch * (numb_conv - 1)
 
         for i in range(numb_conv - 1):
             if (i%2 == 0):
                 self.conv.add_module(
                 "ConvTranspose2d_%i" % (i+1),
-                nn.ConvTranspose2d(i_ch, o_ch, kernel_size, stride=stride, bias=False,
+                nn.ConvTranspose2d(i_ch, i_ch, kernel_size, stride=stride, bias=False, #changed here
                                     output_padding=1, padding=0)
                 )
                 self.conv.add_module(
                 "conv2d_%i" % (i + 1),
-                nn.Conv2d(o_ch, o_ch, kernel_size, bias=False)
+                nn.Conv2d(i_ch, i_ch, kernel_size, bias=False)
                 )
                 self.conv.add_module(
                 "bn_%i" % (i + 1),
-                nn.BatchNorm2d(o_ch, momentum=0.005)
+                nn.BatchNorm2d(i_ch, momentum=0.005)
                 )
                 self.conv.add_module(
                 "relu_%i" % (i + 1),
                 nn.ReLU()
                 )
-                i_ch = o_ch
-                o_ch = o_ch//2
+                #i_ch = o_ch
+                o_ch = i_ch//2
 
             else:
                 self.conv.add_module(
@@ -297,7 +293,7 @@ class Conv_Forward_AE(nn.Module):
                 )
                 self.conv.add_module("relu_%i" % (i + 1), nn.ReLU())
                 i_ch = o_ch
-                o_ch = o_ch//2
+                #o_ch = o_ch//2
 
         #output layers
         self.conv.add_module(
