@@ -225,10 +225,16 @@ class Conv_Forward_AE(nn.Module):
 
         # Linear layers
         h_ch = 2
-        self.lin = nn.Sequential()
-        i_ch = 1/(2**0.5) #Ensures first linear layer expects an input chanel of 8.
+        self.lin = nn.Sequential(
+        nn.Linear(phy_dim,  16 * h_ch * h_ch, bias=False),
+        nn.BatchNorm1d(16 * h_ch * h_ch),
+        nn.ReLU(),
+        nn.Dropout(dropout)
+        )
+        i_ch = h_ch
+        h_ch *= 2
 
-        for i in range(numb_lin):
+        for i in range(numb_lin - 1):
             self.lin.add_module(
             "linear_%i" % (i+1),
             nn.Linear(16 * i_ch * i_ch, 16 * h_ch * h_ch, bias=False)
@@ -244,13 +250,13 @@ class Conv_Forward_AE(nn.Module):
             nn.ReLU()
             )
 
-            if (i != numb_lin - 1):
+            if (i != numb_lin - 2):
                 self.lin.add_module(
                 "Dropout_%i" % (i + 2),
                 nn.Dropout(dropout)
                 )
                 i_ch = h_ch
-                if (numb_lin > 4 and i >= 4):
+                if (numb_lin > 4 and i >= 3):
                     h_ch += 2
                 else:
                     h_ch *= 2
@@ -265,7 +271,7 @@ class Conv_Forward_AE(nn.Module):
             if (i%2 == 0):
                 self.conv.add_module(
                 "ConvTranspose2d_%i" % (i+1),
-                nn.ConvTranspose2d(i_ch, i_ch, kernel_size, stride=stride, bias=False, #changed here
+                nn.ConvTranspose2d(i_ch, i_ch, kernel_size, stride=stride, bias=False,
                                     output_padding=1, padding=0)
                 )
                 self.conv.add_module(
