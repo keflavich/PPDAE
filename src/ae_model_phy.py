@@ -240,17 +240,18 @@ class Conv_Forward_AE(nn.Module):
             nn.Linear(16 * i_ch * i_ch, 16 * h_ch * h_ch, bias=False)
             )
 
-            self.lin.add_module(
-            "bn_%i" % (i + 1),
-            nn.BatchNorm1d(16 * h_ch * h_ch)
-            )
-
-            self.lin.add_module(
-            "relu_%i" % (i + 1),
-            nn.ReLU()
-            )
-
             if (i != numb_lin - 2):
+
+                self.lin.add_module(
+                "bn_%i" % (i + 1),
+                nn.BatchNorm1d(16 * h_ch * h_ch)
+                )
+
+                self.lin.add_module(
+                "relu_%i" % (i + 1),
+                nn.ReLU()
+                )
+
                 self.lin.add_module(
                 "Dropout_%i" % (i + 2),
                 nn.Dropout(dropout)
@@ -260,6 +261,13 @@ class Conv_Forward_AE(nn.Module):
                     h_ch += 2
                 else:
                     h_ch *= 2
+
+            else:
+                self.lin.add_module(
+                "relu_output",
+                nn.ReLU()
+                )
+
         self.h_ch = h_ch
 
         #Convolutional layers
