@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torchvision.models as models
 
 
-class Forward_AE(nn.Module):
+class Upsampling_model(nn.Module):
 
     def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8, stride=2, kernel_size=4):
         """
@@ -23,9 +23,9 @@ class Forward_AE(nn.Module):
         in_ch      : int
             number of channels in input/output image
         """
-        super(Forward_AE, self).__init__()
+        super(Upsampling_model, self).__init__()
         self.img_width = self.img_height = img_dim
-        self.img_size = self.img_width * self.img_height
+        #self.img_size = self.img_width * self.img_height
         self.in_ch = in_ch
         self.phy_dim = phy_dim
 
@@ -36,47 +36,48 @@ class Forward_AE(nn.Module):
             nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Dropout(dropout),
+
             nn.Linear(128, 16 * 4 * 4, bias=False),
             nn.BatchNorm1d(16 * 4 * 4),
             nn.ReLU(),
             nn.Dropout(dropout),
+
             nn.Linear(16 * 4 * 4, 16 * 8 * 8, bias=False),
             nn.BatchNorm1d(16 * 8 * 8),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(16 * 8 * 8, 16 * 16 * 16, bias=False),
+
+            nn.Linear(16 * 8 * 8, 16 * 12 * 12, bias=False),
+            nn.BatchNorm1d(16*12*12),
             nn.ReLU(),
+            nn.Dropout(dropout),
+
+            #Last linear layer
+            nn.Linear(16 * 12 * 12, 16 * 16 * 16, bias=False),
+            nn.ReLU()
         )
         self.dec_transconv = nn.Sequential(
-            nn.ConvTranspose2d(16, 16, kernel_size, stride=stride, bias=False,
-                               output_padding=1, padding=0),
+            nn.Upsample(scale_factor= 2, mode='nearest'),
             nn.Conv2d(16, 16, kernel_size, bias=False),
             nn.BatchNorm2d(16, momentum=0.005),
             nn.ReLU(),
+
+            nn.Upsample(scale_factor= 2, mode='nearest'),
             nn.Conv2d(16, 8, kernel_size, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, 8, kernel_size, stride=stride, bias=False,
-                               output_padding=1, padding=0),
+
+            nn.Upsample(scale_factor= 2, mode='nearest'),
             nn.Conv2d(8, 8, kernel_size, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
+
+            nn.Upsample(scale_factor= 2, mode='nearest'),
             nn.Conv2d(8, 4, kernel_size, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, kernel_size, stride=stride, bias=False,
-                               output_padding=1, padding=0),
-            nn.Conv2d(4, 4, kernel_size, bias=False),
-            nn.BatchNorm2d(4, momentum=0.005),
-            nn.ReLU(),
-            nn.Conv2d(4, 4, kernel_size, bias=False),
-            nn.BatchNorm2d(4, momentum=0.005),
-            nn.ReLU(),
-            nn.ConvTranspose2d(4, 4, kernel_size, stride=stride, bias=False,
-                               output_padding=1, padding=0),
-            nn.Conv2d(4, 4, kernel_size, bias=False),
-            nn.BatchNorm2d(4, momentum=0.005),
-            nn.ReLU(),
+
+            ###output layer
             nn.Conv2d(4, in_ch, 7),
             nn.Sigmoid()
         )
@@ -141,6 +142,7 @@ class Dev_Forward_AE(nn.Module):
             nn.BatchNorm1d(16*16*8),
             nn.ReLU(),
             nn.Dropout(dropout),
+
             #Last linear layer
             nn.Linear(16 * 16 * 8, 16 * 16 * 16, bias=False),
             nn.ReLU()
@@ -157,6 +159,7 @@ class Dev_Forward_AE(nn.Module):
             nn.Conv2d(16, 8, kernel_size, bias=False),
             nn.BatchNorm2d(8, momentum=0.005),
             nn.ReLU(),
+
             nn.ConvTranspose2d(8, 8, kernel_size, stride=stride, bias=False,
                                output_padding=1, padding=0),
 
@@ -167,6 +170,7 @@ class Dev_Forward_AE(nn.Module):
             nn.Conv2d(8, 4, kernel_size, bias=False),
             nn.BatchNorm2d(4, momentum=0.005),
             nn.ReLU(),
+
             ###output layer
             nn.ConvTranspose2d(4, 4, kernel_size, stride=stride, bias=False,
                                output_padding=1, padding=0),

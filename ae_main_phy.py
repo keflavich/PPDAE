@@ -1,7 +1,7 @@
 """AE main training script
 This script allows the user to train an AE model using Protoplanetary disk
 images loaded with the 'dataset.py' class, AE model located in 'ae_model.py' class,
-and the trainig loop coded in 'ae_training.py'. 
+and the trainig loop coded in 'ae_training.py'.
 The script also uses Weight & Biases framework to log metrics, model hyperparameters, configuration parameters, and training figures.
 This file contains the following
 functions:
@@ -44,14 +44,14 @@ parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
                     help='physical parameters are 0-1 scaled ([T],F)')
 parser.add_argument('--subset', dest='subset', type=str, default='25052021',
                     help='data subset ([25052021],fexp1)')
-parser.add_argument('--part-num', dest='par_num', type=int, 
+parser.add_argument('--part-num', dest='par_num', type=int,
                     default=1, help='partition subset number ([1],2,3,4,5)')
 parser.add_argument('--lr', dest='lr', type=float, default=1e-4,
                     help='learning rate [1e-4]')
 parser.add_argument('--batch-size', dest='batch_size', type=int, default=32,
                     help='batch size [128]')
-parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=100,
-                    help='total number of training epochs [100]')
+parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=51,
+                    help='total number of training epochs [51]')
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
 parser.add_argument('--transform', dest='transform', type=str, default='T',
@@ -60,18 +60,18 @@ parser.add_argument('--stride', dest='stride', type=int, default=2,
                     help='stride amount [2]')
 parser.add_argument('--kernel', dest='kernel_size', type=int, default=4,
                     help='Kernel size [4x4]')
-parser.add_argument('--numb-conv', dest='n_conv', type=int, default=5,
-                    help='number of convolutional layers [5]')
-parser.add_argument('--numb-lin', dest='n_lin', type=int, default=5,
-                    help='number of linear layers [5]')
+parser.add_argument('--numb-conv', dest='n_conv', type=int, default=8,
+                    help='number of (convtrans+conv+bn) stacks [8]')
+parser.add_argument('--numb-lin', dest='n_lin', type=int, default=3,
+                    help='number of (lin+bn+do) stacks [5]')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
                     help='feed physics to decoder (F,[T])')
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
-parser.add_argument('--model-name', dest='model_name', type=str, 
-                    default='Forward_AE', help='name of model ([Forward_AE], Dev_Forward_AE, Conv_Forward_AE)')
+parser.add_argument('--model-name', dest='model_name', type=str,
+                    default='Conv_Forward_AE', help='name of model (Upsampling_model, Dev_Forward_AE, [Conv_Forward_AE])')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments for runtime labels')
@@ -99,13 +99,13 @@ def run_code():
         print('Exiting!')
         sys.exit()
     print('Dataset size: ', len(dataset))
-    
+
     # data loaders for training and testing
     train_loader, val_loader, _ = dataset.get_dataloader(batch_size=args.batch_size,
                                                          shuffle=True,
                                                          val_split=.2,
                                                          random_seed=rnd_seed)
-      
+
     wandb.config.physics_dim = len(dataset.par_names)
     wandb.config.update(args, allow_val_change=True)
 
@@ -114,14 +114,14 @@ def run_code():
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
     # different types of AE models are stored in src/ae_model_phy.py
-    if args.model_name == 'Forward_AE':
-        model = Forward_AE(img_dim=dataset.img_dim,
+    if args.model_name == 'Upsampling_model':
+        model = Upsampling_model(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
                                    phy_dim=wandb.config.physics_dim,
                                    stride=args.stride,
                                    kernel_size=args.kernel_size)
-         
+
     elif args.model_name == 'Dev_Forward_AE':
         model = Dev_Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
@@ -129,7 +129,7 @@ def run_code():
                                    phy_dim=wandb.config.physics_dim,
                                    stride=args.stride,
                                    kernel_size=args.kernel_size)
-         
+
     elif args.model_name == 'Conv_Forward_AE':
         model = Conv_Forward_AE(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
@@ -139,12 +139,12 @@ def run_code():
                                    kernel_size=args.kernel_size,
                                    numb_conv=args.n_conv,
                                    numb_lin=args.n_lin)
-        
+
     else:
         print('Wrong Model Name.')
         print('Please select model: Forward_AE or Dev_Forward_AE')
         sys.exit()
-    
+
     # log model architecture and gradients to wandb
     wandb.watch(model, log='gradients')
 
@@ -162,7 +162,7 @@ def run_code():
     print('########################################')
     print('########  Running in %4s  #########' % (device))
     print('########################################')
-    
+
     # initialize trainer
     trainer = Trainer(model, optimizer, args.batch_size, wandb,
                       print_every=100, device=device)
