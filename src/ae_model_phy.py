@@ -11,6 +11,8 @@ import torchvision.models as models
 
 
 class Upsampling_model(nn.Module):
+    ### NOTE: after extensive testing, we decided that upsampling does not produce
+    ###     accurate images nor does it learn as fast. This model is no longer used.
 
     def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8, stride=2, kernel_size=4):
         """
@@ -200,7 +202,8 @@ class Dev_Forward_AE(nn.Module):
 
 class Conv_Forward_AE(nn.Module):
 
-    def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8, stride=2, kernel_size=4, numb_conv=5, numb_lin=5):
+    def __init__(self, img_dim=28, dropout=.2, in_ch=1, phy_dim=8,
+        stride=2, kernel_size=4, numb_conv=5, numb_lin=5, a_func=nn.ReLU()):
         """
         Parameters
         ----------
@@ -232,7 +235,7 @@ class Conv_Forward_AE(nn.Module):
         self.lin = nn.Sequential(
         nn.Linear(phy_dim,  16 * h_ch * h_ch, bias=False),
         nn.BatchNorm1d(16 * h_ch * h_ch),
-        nn.ReLU(),
+        a_func,
         nn.Dropout(dropout)
         )
         i_ch = h_ch
@@ -252,8 +255,8 @@ class Conv_Forward_AE(nn.Module):
                 )
 
                 self.lin.add_module(
-                "relu_%i" % (i + 1),
-                nn.ReLU()
+                "activation_%i" % (i + 1),
+                a_func
                 )
 
                 self.lin.add_module(
@@ -268,8 +271,8 @@ class Conv_Forward_AE(nn.Module):
 
             else:
                 self.lin.add_module(
-                "relu_output",
-                nn.ReLU()
+                "activation_output",
+                a_func
                 )
 
         self.h_ch = h_ch
@@ -295,8 +298,8 @@ class Conv_Forward_AE(nn.Module):
                 nn.BatchNorm2d(i_ch, momentum=0.005)
                 )
                 self.conv.add_module(
-                "relu_%i" % (i + 1),
-                nn.ReLU()
+                "activation_%i" % (i + 1),
+                a_func
                 )
                 #i_ch = o_ch
                 o_ch = i_ch//2
@@ -321,7 +324,7 @@ class Conv_Forward_AE(nn.Module):
 
         self.conv.add_module(
         "Conv2d_output",
-        nn.Conv2d(4, in_ch, 7)
+        nn.Conv2d(4, in_ch, kernel_size - 1)
         )
 
         self.conv.add_module(

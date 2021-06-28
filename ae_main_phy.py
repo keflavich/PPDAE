@@ -14,6 +14,7 @@ import sys
 import argparse
 import torch
 import torch.optim as optim
+import torch.nn as nn
 import numpy as np
 from src.dataset_large import ProtoPlanetaryDisks
 from src.ae_model_phy import *
@@ -63,15 +64,17 @@ parser.add_argument('--kernel', dest='kernel_size', type=int, default=4,
 parser.add_argument('--numb-conv', dest='n_conv', type=int, default=8,
                     help='number of (convtrans+conv+bn) stacks [8]')
 parser.add_argument('--numb-lin', dest='n_lin', type=int, default=3,
-                    help='number of (lin+bn+do) stacks [5]')
+                    help='number of (lin+bn+do) stacks [3]')
 parser.add_argument('--cond', dest='cond', type=str, default='T',
                     help='physics conditioned AE ([F],T)')
 parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
                     help='feed physics to decoder (F,[T])')
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
+parser.add_argument('--activation_func', dest='a_func', type=str, default='ReLU',
+                    help='activation function ([ReLU], tanh, LeakyReLu)')
 parser.add_argument('--model-name', dest='model_name', type=str,
-                    default='Conv_Forward_AE', help='name of model (Upsampling_model, Dev_Forward_AE, [Conv_Forward_AE])')
+                    default='Conv_Forward_AE', help='name of model (Dev_Forward_AE, [Conv_Forward_AE])')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments for runtime labels')
@@ -111,6 +114,14 @@ def run_code():
 
     print('Physic dimension: ', wandb.config.physics_dim)
 
+    #activation functions:
+    if args.a_func == 'ReLU':
+        a_func = nn.Relu()
+    elif args.a_func == 'tanh':
+        a_func = nn.Tanh()
+    elif args.a_func == 'LeakyReLu':
+        a_func = nn.LeakyReLu()
+
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
     # different types of AE models are stored in src/ae_model_phy.py
@@ -138,7 +149,8 @@ def run_code():
                                    stride=args.stride,
                                    kernel_size=args.kernel_size,
                                    numb_conv=args.n_conv,
-                                   numb_lin=args.n_lin)
+                                   numb_lin=args.n_lin,
+                                   a_func = a_func)
 
     else:
         print('Wrong Model Name.')
