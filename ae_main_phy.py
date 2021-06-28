@@ -116,11 +116,11 @@ def run_code():
 
     #activation functions:
     if args.a_func == 'ReLU':
-        a_func = nn.Relu()
+        a_func = nn.ReLU()
     elif args.a_func == 'tanh':
         a_func = nn.Tanh()
     elif args.a_func == 'LeakyReLu':
-        a_func = nn.LeakyReLu()
+        a_func = nn.LeakyReLU()
 
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
