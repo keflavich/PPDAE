@@ -39,8 +39,8 @@ parser.add_argument('--dry-run', dest='dry_run', action='store_true',
 parser.add_argument('--machine', dest='machine', type=str, default='exalearn',
                     help='were to is running (local, colab, [exalearn])')
 #erased latent dimension option, conv_blocks, data (args.data), args.optim, Kernel_size, lr_sch
-parser.add_argument('--img-norm', dest='img_norm', type=str, default='global',
-                    help='type of normalization for images ([global], image)')
+parser.add_argument('--img-norm', dest='img_norm', type=str, default='image',
+                    help='type of normalization for images (global, [image])')
 parser.add_argument('--par-norm', dest='par_norm', type=str, default='T',
                     help='physical parameters are 0-1 scaled ([T],F)')
 parser.add_argument('--subset', dest='subset', type=str, default='25052021',
@@ -55,8 +55,8 @@ parser.add_argument('--num-epochs', dest='num_epochs', type=int, default=51,
                     help='total number of training epochs [51]')
 parser.add_argument('--early-stop', dest='early_stop', action='store_true',
                     default=False, help='Early stoping')
-parser.add_argument('--transform', dest='transform', type=str, default='T',
-                    help='applies transformation to images ([T], F)')
+parser.add_argument('--transform', dest='transform', type=str, default='F',
+                    help='applies transformation to images (T, [F])')
 parser.add_argument('--stride', dest='stride', type=int, default=2,
                     help='stride amount [2]')
 parser.add_argument('--kernel', dest='kernel_size', type=int, default=4,
@@ -74,7 +74,7 @@ parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
 parser.add_argument('--activation_func', dest='a_func', type=str, default='ReLU',
                     help='activation function ([ReLU], tanh, LeakyReLu)')
 parser.add_argument('--model-name', dest='model_name', type=str,
-                    default='Conv_Forward_AE', help='name of model (Dev_Forward_AE, [Conv_Forward_AE])')
+                    default='Conv_Forward_AE', help='name of model (Dev_Forward_AE, [Conv_Forward_AE], Conv_Forward_2)')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
                     help='extra comments for runtime labels')
@@ -125,13 +125,16 @@ def run_code():
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
     # different types of AE models are stored in src/ae_model_phy.py
-    if args.model_name == 'Upsampling_model':
-        model = Upsampling_model(img_dim=dataset.img_dim,
+    if args.model_name == 'Conv_Forward_2':
+        model = Conv_Forward_2(img_dim=dataset.img_dim,
                                    dropout=args.dropout,
                                    in_ch=dataset.img_channels,
                                    phy_dim=wandb.config.physics_dim,
                                    stride=args.stride,
-                                   kernel_size=args.kernel_size)
+                                   kernel_size=args.kernel_size,
+                                   numb_conv=args.n_conv,
+                                   numb_lin=args.n_lin,
+                                   a_func = a_func)
 
     elif args.model_name == 'Dev_Forward_AE':
         model = Dev_Forward_AE(img_dim=dataset.img_dim,
