@@ -328,7 +328,7 @@ class Conv_Forward_AE(nn.Module):
 
         self.conv.add_module(
         "Conv2d_output",
-        nn.Conv2d(4, in_ch, kernel_size)
+        nn.Conv2d(4, self.in_ch, kernel_size)
         )
 
         self.conv.add_module(
