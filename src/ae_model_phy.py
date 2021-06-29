@@ -232,9 +232,13 @@ class Conv_Forward_AE(nn.Module):
 
         # Linear layers
         h_ch = 2
+        if (numb_lin > 4):
+            in_ch = 8
+        else:
+            in_ch = 16
         self.lin = nn.Sequential(
-        nn.Linear(phy_dim,  16 * h_ch * h_ch, bias=False),
-        nn.BatchNorm1d(16 * h_ch * h_ch),
+        nn.Linear(phy_dim,  in_ch * h_ch * h_ch, bias=False),
+        nn.BatchNorm1d(in_ch * h_ch * h_ch),
         a_func,
         nn.Dropout(dropout)
         )
@@ -244,14 +248,14 @@ class Conv_Forward_AE(nn.Module):
         for i in range(numb_lin - 1):
             self.lin.add_module(
             "linear_%i" % (i+1),
-            nn.Linear(16 * i_ch * i_ch, 16 * h_ch * h_ch, bias=False)
+            nn.Linear(in_ch * i_ch * i_ch, in_ch * h_ch * h_ch, bias=False)
             )
 
             if (i != numb_lin - 2):
 
                 self.lin.add_module(
                 "bn_%i" % (i + 1),
-                nn.BatchNorm1d(16 * h_ch * h_ch)
+                nn.BatchNorm1d(in_ch * h_ch * h_ch)
                 )
 
                 self.lin.add_module(
@@ -276,6 +280,7 @@ class Conv_Forward_AE(nn.Module):
                 )
 
         self.h_ch = h_ch
+        self.in_ch = in_ch
 
         #Convolutional layers
         self.conv = nn.Sequential()
@@ -344,7 +349,7 @@ class Conv_Forward_AE(nn.Module):
             reconstructed image [N, C, H, W]
         """
         z = self.lin(phy)
-        z = z.view(-1, 16, self.h_ch, self.h_ch)
+        z = z.view(-1, self.in_ch, self.h_ch, self.h_ch)
         z = self.conv(z)
 
         z = F.interpolate(z, size=(self.img_dim, self.img_dim),

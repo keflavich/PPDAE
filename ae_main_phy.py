@@ -72,7 +72,7 @@ parser.add_argument('--feed-phy', dest='feed_phy', type=str, default='T',
 parser.add_argument('--dropout', dest='dropout', type=float, default=0.2,
                     help='dropout for all layers [0.2]')
 parser.add_argument('--activation_func', dest='a_func', type=str, default='ReLU',
-                    help='activation function ([ReLU], tanh, LeakyReLu)')
+                    help='activation function ([ReLU], LeakyReLu, Sigmoid, Softplus)')
 parser.add_argument('--model-name', dest='model_name', type=str,
                     default='Conv_Forward_AE', help='name of model (Dev_Forward_AE, [Conv_Forward_AE], Conv_Forward_2)')
 
@@ -117,10 +117,12 @@ def run_code():
     #activation functions:
     if args.a_func == 'ReLU':
         a_func = nn.ReLU()
-    elif args.a_func == 'tanh':
-        a_func = nn.Tanh()
     elif args.a_func == 'LeakyReLu':
         a_func = nn.LeakyReLU()
+    elif args.a_func == 'Sigmoid':
+        a_func = nn.Sigmoid()
+    elif args.a_func == 'Softplus':
+        a_func = nn.Softplus()
 
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
