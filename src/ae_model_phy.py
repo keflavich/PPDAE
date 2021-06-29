@@ -268,8 +268,8 @@ class Conv_Forward_AE(nn.Module):
                 nn.Dropout(dropout)
                 )
                 i_ch = h_ch
-                if (numb_lin > 4 and i >= 3):
-                    h_ch += 2
+                if (i >= 3 and numb_lin > 4):
+                    h_ch += 4
                 else:
                     h_ch *= 2
 
@@ -285,7 +285,6 @@ class Conv_Forward_AE(nn.Module):
         #Convolutional layers
         self.conv = nn.Sequential()
         i_ch = in_ch
-        #o_ch = i_ch * (numb_conv - 1)
 
         for i in range(numb_conv - 1):
             if (i%2 == 0):
