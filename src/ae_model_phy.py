@@ -268,7 +268,7 @@ class Conv_Forward_AE(nn.Module):
                 nn.Dropout(dropout)
                 )
                 i_ch = h_ch
-                if (i >= 3 and numb_lin > 4):
+                if (i >= 2 and numb_lin > 4):
                     h_ch += 4
                 else:
                     h_ch *= 2
@@ -280,7 +280,7 @@ class Conv_Forward_AE(nn.Module):
                 )
 
         self.h_ch = h_ch
-        self.in_ch = in_ch
+        self.i_ch = in_ch
 
         #Convolutional layers
         self.conv = nn.Sequential()
@@ -348,7 +348,7 @@ class Conv_Forward_AE(nn.Module):
             reconstructed image [N, C, H, W]
         """
         z = self.lin(phy)
-        z = z.view(-1, self.in_ch, self.h_ch, self.h_ch)
+        z = z.view(-1, self.i_ch, self.h_ch, self.h_ch)
         z = self.conv(z)
 
         z = F.interpolate(z, size=(self.img_dim, self.img_dim),
