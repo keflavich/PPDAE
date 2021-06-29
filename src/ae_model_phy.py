@@ -377,7 +377,7 @@ class Conv_Forward_2(nn.Module):
             number of linear layers in the model. 5 by defalult.
         """
 
-        super(Conv_Forward_AE, self).__init__()
+        super(Conv_Forward_2, self).__init__()
         self.in_ch = in_ch
         self.img_dim = img_dim
 
