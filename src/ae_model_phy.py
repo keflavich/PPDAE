@@ -284,7 +284,7 @@ class Conv_Forward_AE(nn.Module):
 
         #Convolutional layers
         self.conv = nn.Sequential()
-        i_ch = 16
+        i_ch = in_ch
         #o_ch = i_ch * (numb_conv - 1)
 
         for i in range(numb_conv - 1):
