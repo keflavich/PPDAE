@@ -115,6 +115,8 @@ class ProtoPlanetaryDisks(Dataset):
         par_norm   : bool, optional
             load parameters that are scaled to [0,1] when True, or raw images
             when False.
+        par_num    : int, optional
+            choose the partition to use during training [1,5].
         """
         if machine == "local":
             ppd_path = "%s/data/PPD/partitions" % (root)
@@ -177,9 +179,7 @@ class ProtoPlanetaryDisks(Dataset):
         return len(self.par_train) + len(self.par_test)
 
     def __getitem__(self, index):
-        memmap_index = bisect(self.start_indices, index) - 1
-        index_in_memmap = index - self.start_indices[memmap_index]
-        img = self.imgs_memmaps[memmap_index][index_in_memmap]
+        img = self.imgs_train[index]
         par = self.par_train[index]
         if self.transform:
             img = self.transform_fx(img)
@@ -219,7 +219,7 @@ class ProtoPlanetaryDisks(Dataset):
             val_loader = None
         else:
             # Creating data indices for training and val splits:
-            dataset_size = len(self.par_train)
+            dataset_size = len(self.imgs_train)
             indices = list(range(dataset_size))
             split = int(np.floor(val_split * dataset_size))
             if shuffle:
