@@ -18,6 +18,8 @@ functions:
 import os, re, glob
 import socket
 import numpy as np
+import pandas as pd
+import seaborn as sb
 import matplotlib
 
 if socket.gethostname() == "exalearn":
