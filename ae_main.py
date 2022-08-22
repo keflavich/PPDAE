@@ -90,6 +90,13 @@ parser.add_argument(
     help="learning rate shceduler " + "([None], step, exp, cosine, plateau)",
 )
 parser.add_argument(
+    "--loss-fx", 
+    dest="loss_fx", 
+    type=str, 
+    default="bce", 
+    help="Loss function ([bce], mse)"
+)
+parser.add_argument(
     "--batch-size", dest="batch_size", type=int, default=32, help="batch size [128]"
 )
 parser.add_argument(
@@ -297,6 +304,7 @@ def run_code():
         scheduler=scheduler,
         print_every=100,
         device=device,
+        loss_fx=args.loss_fx,
     )
 
     if args.dry_run:

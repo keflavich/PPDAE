@@ -51,6 +51,7 @@ class Trainer(object):
         wandb,
         scheduler=None,
         print_every=50,
+        loss_fx="bce",
         device="cpu",
     ):
         """
@@ -88,6 +89,7 @@ class Trainer(object):
         self.mse_loss = nn.MSELoss(reduction="mean")
         self.bce_loss = nn.BCELoss(reduction="mean")
         self.wb = wandb
+        self.loss_fx = loss_fx
 
     def _loss(self, x, xhat, train=True, ep=0):
         """Evaluates loss function and add reports to the logger.
@@ -107,7 +109,10 @@ class Trainer(object):
         loss
             loss value
         """
-        loss = self.bce_loss(xhat, x)
+        if self.loss_fx == "mse":
+            loss = self.mse_loss(xhat, x)
+        elif self.loss_fx == "bce":
+            loss = self.bce_loss(xhat, x)
 
         if train:
             self.train_loss["Loss"].append(loss.item())
