@@ -162,6 +162,13 @@ class ProtoPlanetaryDisks(Dataset):
             "%s/img_array_gridandfiller_%snorm%s_test.npy"
             % (ppd_path, image_norm, subset)
         )
+        if len(self.imgs_test.shape) == 3:
+            self.imgs_test = self.imgs_test.reshape(
+                (self.imgs_test.shape, 
+                 1, 
+                 self.imgs_test.shape[0], 
+                 self.imgs_test.shape[2])
+            )
 
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
@@ -180,6 +187,13 @@ class ProtoPlanetaryDisks(Dataset):
         memmap_index = bisect(self.start_indices, index) - 1
         index_in_memmap = index - self.start_indices[memmap_index]
         img = self.imgs_memmaps[memmap_index][index_in_memmap]
+        if len(img.shape) == 3:
+            img = img.reshape(
+                (img.shape, 
+                 1, 
+                 img.shape[0], 
+                 img.shape[2])
+            )
         par = self.par_train[index]
         if self.transform:
             img = self.transform_fx(img)
