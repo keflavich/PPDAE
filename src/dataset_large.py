@@ -7,7 +7,7 @@ import torchvision
 from bisect import bisect
 from sklearn import preprocessing
 
-root = "/Users/jorgetil/Astro/PPD-AE"
+root = "/Users/jorgemarpa/Work/UCB"
 colab_root = "/content/drive/MyDrive"
 exalearn_root = "/home/jorgemarpa/data/imgs"
 
@@ -117,7 +117,7 @@ class ProtoPlanetaryDisks(Dataset):
             when False.
         """
         if machine == "local":
-            ppd_path = "%s/data/PPD/partitions" % (root)
+            ppd_path = "%s/data/partitions" % (root)
         elif machine == "colab":
             ppd_path = "%s/PPDAE/partitions" % (colab_root)
         elif machine == "exalearn":
@@ -179,7 +179,7 @@ class ProtoPlanetaryDisks(Dataset):
             [MyRotationTransform(), MyFlipVerticalTransform()]
         )
         self.par_norm = par_norm
-        self.MinMaxSc = preprocessing.MinMaxScaler()
+        self.MinMaxSc = preprocessing.MinMaxScaler(feature_range=(-1, 1))
         self.MinMaxSc.fit(np.concatenate([self.par_train, self.par_test]))
 
     def __len__(self):
