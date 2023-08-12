@@ -335,7 +335,7 @@ class ConvLinTrans_AE_1d(nn.Module):
         n_conv_blocks : int
             number of [conv + relu + maxpooling] blocks
         """
-        super(ConvLinTrans_AE, self).__init__()
+        super(ConvLinTrans_AE_1d, self).__init__()
         self.latent_dim = latent_dim
         self.img_width = self.img_height = img_dim
         self.img_size = self.img_width

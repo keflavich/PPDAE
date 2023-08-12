@@ -16,7 +16,7 @@ import torch
 import torch.optim as optim
 import numpy as np
 from ppdae.dataset_large import ProtoPlanetaryDisks, RobitailleGrid
-from ppdae.ae_model_phy import *
+from ppdae.ae_model_phy import ConvLinTrans_AE, ConvLinTrans_AE_1d
 from ppdae.ae_training_phy import Trainer
 from ppdae.utils import count_parameters, str2bool
 import wandb
@@ -239,6 +239,17 @@ def main():
     # different types of AE models are stored in src/ae_model.py
     if args.model_name == "ConvLinTrans_AE":
         model = ConvLinTrans_AE(
+            latent_dim=args.latent_dim,
+            img_dim=dataset.img_dim,
+            dropout=args.dropout,
+            in_ch=dataset.img_channels,
+            kernel=args.kernel_size,
+            n_conv_blocks=args.conv_blocks,
+            phy_dim=wandb.config.physics_dim,
+            feed_phy=str2bool(args.feed_phy),
+        )
+    elif args.model_name == "ConvLinTrans_AE1D":
+        model = ConvLinTrans_AE_1d(
             latent_dim=args.latent_dim,
             img_dim=dataset.img_dim,
             dropout=args.dropout,
