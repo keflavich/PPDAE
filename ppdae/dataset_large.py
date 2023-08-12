@@ -311,7 +311,8 @@ class RobitailleGrid(Dataset):
                   'envelope.power', 'ambient.density', 'ambient.temperature',
                   'scattering',]
         subset="25052021",
-        image_norm="",
+        image_norm="image",
+        machine=None,
     ):
         """
         Parameters
@@ -334,7 +335,7 @@ class RobitailleGrid(Dataset):
 
         self.imgs_paths = sorted(
             glob.glob(
-                f"{ppd_path}/img_array_gridandfiller_imagenorm{image_norm}{subset}_train_*.npy"
+                f"{ppd_path}/img_array_gridandfiller_{image_norm}norm{subset}_train_*.npy"
             )
         )
         self.imgs_memmaps = [np.load(path, mmap_mode="r") for path in self.imgs_paths]
@@ -346,11 +347,10 @@ class RobitailleGrid(Dataset):
 
         self.par_names = parnames
         self.par_test = np.load(
-            "%s/param_arr_gridandfiller%s_test.npy" % (ppd_path, subset)
+            f"{ppd_path}/param_arr_gridandfiller{subset}_test.npy"
         )
         self.imgs_test = np.load(
-            "%s/img_array_gridandfiller_%snorm%s_test.npy"
-            % (ppd_path, image_norm, subset)
+            "{ppd_path}/img_array_gridandfiller_{image_norm}norm{subset}_test.npy"
         )
         if len(self.imgs_test.shape) == 3:
             self.imgs_test = self.imgs_test.reshape(
@@ -365,9 +365,12 @@ class RobitailleGrid(Dataset):
         self.img_dim = self.imgs_test[0].shape[-1]
         self.img_channels = self.imgs_test[0].shape[0]
         self.transform = transform
+
+        # for 1D models, do we really want this?
         self.transform_fx = torchvision.transforms.Compose(
             [MyRotationTransform(), MyFlipVerticalTransform()]
         )
+
         self.par_norm = par_norm
         self.MinMaxSc = preprocessing.MinMaxScaler()
         self.MinMaxSc.fit(np.concatenate([self.par_train, self.par_test]))
