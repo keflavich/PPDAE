@@ -5,7 +5,7 @@ and the trainig loop coded in 'ae_training.py'.
 The script also uses Weight & Biases framework to log metrics, model hyperparameters, configuration parameters, and training figures.
 This file contains the following
 functions:
-    * run_code - runs the main code
+    * main - runs the main code
 For help, run:
     python ae_main.py --help
 """
@@ -172,7 +172,7 @@ wandb.config.rnd_seed = rnd_seed
 
 
 # run main program
-def run_code():
+def main():
     # asses which device will be used, CPY or GPU
     device = torch.device("cuda" if torch.cuda.is_available() else
                           "mps" if torch.backends.mps.is_available() else
@@ -324,4 +324,4 @@ if __name__ == "__main__":
     for key, value in vars(args).items():
         print("%15s\t: %s" % (key, value))
 
-    run_code()
+    main()

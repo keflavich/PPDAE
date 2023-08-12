@@ -1,11 +1,11 @@
 """VAE main training script
 This script allows the user to train an AE model using Protoplanetary disk
 images loaded with the 'dataset.py' class, VAE model located in 'ae_model.py' class,
-and the trainig loop coded in 'ae_training.py'. 
+and the trainig loop coded in 'ae_training.py'.
 The script also uses Weight & Biases framework to log metrics, model hyperparameters, configuration parameters, and training figures.
 This file contains the following
 functions:
-    * run_code - runs the main code
+    * main - runs the main code
 For help, run:
     python ae_main.py --help
 """
@@ -69,7 +69,7 @@ parser.add_argument('--kernel-size', dest='kernel_size', type=int, default=3,
                     help='2D conv kernel size, encoder [3]')
 parser.add_argument('--conv-blocks', dest='conv_blocks', type=int, default=5,
                     help='conv+actfx+pool blocks [5]')
-parser.add_argument('--model-name', dest='model_name', type=str, 
+parser.add_argument('--model-name', dest='model_name', type=str,
                     default='Linear_AE', help='name of model')
 
 parser.add_argument('--comment', dest='comment', type=str, default='',
@@ -83,7 +83,7 @@ wandb.config.rnd_seed = rnd_seed
 
 
 # run main program
-def run_code():
+def main():
     # asses which device will be used, CPY or GPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device.type == 'cuda':
@@ -103,7 +103,7 @@ def run_code():
         print('Exiting!')
         sys.exit()
     print('Dataset size: ', len(dataset))
-    
+
     # data loaders for training and testing
     train_loader, val_loader, _ = dataset.get_dataloader(batch_size=args.batch_size,
                                                          shuffle=True,
@@ -130,12 +130,12 @@ def run_code():
                                 n_conv_blocks=args.conv_blocks,
                                 phy_dim=wandb.config.physics_dim,
                                 feed_phy=args.feed_phy)
-        
+
     else:
         print('Wrong Model Name.')
         print('Please select model: ConvLinTrans_AE')
         sys.exit()
-    
+
     # log model architecture and gradients to wandb
     wandb.watch(model, log='gradients')
 
@@ -194,4 +194,4 @@ if __name__ == "__main__":
     for key, value in vars(args).items():
         print('%15s\t: %s' % (key, value))
 
-    run_code()
+    main()
