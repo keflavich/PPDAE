@@ -174,7 +174,9 @@ wandb.config.rnd_seed = rnd_seed
 # run main program
 def run_code():
     # asses which device will be used, CPY or GPU
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else
+                          "mps" if torch.backends.mps.is_available() else
+                          "cpu")
     if device.type == "cuda":
         torch.cuda.empty_cache()
     # Load Data #
