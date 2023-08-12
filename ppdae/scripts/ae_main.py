@@ -15,10 +15,10 @@ import argparse
 import torch
 import torch.optim as optim
 import numpy as np
-from src.dataset_large import ProtoPlanetaryDisks
-from src.ae_model_phy import *
-from src.ae_training_phy import Trainer
-from src.utils import count_parameters, str2bool
+from ppdae.dataset_large import ProtoPlanetaryDisks
+from ppdae.ae_model_phy import *
+from ppdae.ae_training_phy import Trainer
+from ppdae.utils import count_parameters, str2bool
 import wandb
 
 torch.autograd.set_detect_anomaly(True)
@@ -43,16 +43,16 @@ parser.add_argument(
     "--machine",
     dest="machine",
     type=str,
-    default="colab",
-    help="were to is running (local, [colab], exalearn)",
+    default="hpg",
+    help="were to is running (local, colab, exalearn, hpg)",
 )
 
 parser.add_argument(
     "--data",
     dest="data",
     type=str,
-    default="PPD",
-    help="data used for training (MNIST, [PPD])",
+    default="Robitaille",
+    help="data used for training ([Robitaille], MNIST, PPD)",
 )
 parser.add_argument(
     "--img-norm",
@@ -177,10 +177,19 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else
                           "mps" if torch.backends.mps.is_available() else
                           "cpu")
+    print(f"Using device {device}")
     if device.type == "cuda":
         torch.cuda.empty_cache()
     # Load Data #
-    if args.data == "PPD":
+    if args.data == "Robitaille":
+        dataset = RobitailleGrid(
+            machine=args.machine,
+            transform=True,
+            par_norm=str2bool(args.par_norm),
+            subset=args.subset,
+            image_norm=args.img_norm,
+        )
+    elif args.data == "PPD":
         dataset = ProtoPlanetaryDisks(
             machine=args.machine,
             transform=True,
@@ -206,6 +215,8 @@ def main():
     )
 
     if args.data == "PPD" and str2bool(args.cond):
+        wandb.config.physics_dim = len(dataset.par_names)
+    elif args.data == "Robitaille" and str2bool(args.cond):
         wandb.config.physics_dim = len(dataset.par_names)
     else:
         wandb.config.physics_dim = 0
