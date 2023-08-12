@@ -15,10 +15,10 @@ import argparse
 import torch
 import torch.optim as optim
 import numpy as np
-from src.dataset_large import ProtoPlanetaryDisks
-from src.vae_model_phy import *
-from src.vae_training_phy import Trainer
-from src.utils import count_parameters, str2bool
+from ppdae.dataset_large import ProtoPlanetaryDisks
+from ppdae.vae_model_phy import *
+from ppdae.vae_training_phy import Trainer
+from ppdae.utils import count_parameters, str2bool
 import wandb
 
 torch.autograd.set_detect_anomaly(False)

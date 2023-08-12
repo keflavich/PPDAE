@@ -2,8 +2,8 @@ import numpy as np
 import datetime
 import torch
 import torch.nn as nn
-from src.utils import plot_recon_wall, plot_latent_space
-from src.training_callbacks import EarlyStopping
+from ppdae.utils import plot_recon_wall, plot_latent_space
+from ppdae.training_callbacks import EarlyStopping
 
 
 class Trainer(object):

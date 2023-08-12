@@ -309,7 +309,7 @@ class RobitailleGrid(Dataset):
         par_norm=False,
         parnames=['star.radius', 'star.temperature', 'envelope.rho_0',
                   'envelope.power', 'ambient.density', 'ambient.temperature',
-                  'scattering',]
+                  'scattering',],
         subset="25052021",
         image_norm="image",
         machine=None,
