@@ -15,7 +15,7 @@ import argparse
 import torch
 import torch.optim as optim
 import numpy as np
-from ppdae.dataset_large import ProtoPlanetaryDisks
+from ppdae.dataset_large import ProtoPlanetaryDisks, RobitailleGrid
 from ppdae.ae_model_phy import *
 from ppdae.ae_training_phy import Trainer
 from ppdae.utils import count_parameters, str2bool
@@ -159,16 +159,20 @@ parser.add_argument(
     default="ConvLinTrans_AE",
     help="name of model [ConvLinTrans_AE]",
 )
+parser.add_argument(
+    "--entity",
+    dest="entity",
+    type=str,
+    default="ufsf",
+    help="wandb entity (username or organization) [ufsf]",
+)
+
 
 parser.add_argument(
     "--comment", dest="comment", type=str, default="", help="extra comments"
 )
 args = parser.parse_args()
 
-# Initialize W&B project and save user defined flags
-wandb.init(entity="deep_ppd", project="PPD-AE", tags=["AE"])
-wandb.config.update(args)
-wandb.config.rnd_seed = rnd_seed
 
 
 # run main program
@@ -184,7 +188,7 @@ def main():
     if args.data == "Robitaille":
         dataset = RobitailleGrid(
             machine=args.machine,
-            transform=True,
+            transform=False,
             par_norm=str2bool(args.par_norm),
             subset=args.subset,
             image_norm=args.img_norm,
@@ -213,6 +217,11 @@ def main():
     train_loader, val_loader, _ = dataset.get_dataloader(
         batch_size=args.batch_size, shuffle=True, val_split=0.2, random_seed=rnd_seed
     )
+
+    # Initialize W&B project and save user defined flags
+    wandb.init(entity=args.entity, project="ppdae", tags=["AE"])
+    wandb.config.update(args)
+    wandb.config.rnd_seed = rnd_seed
 
     if args.data == "PPD" and str2bool(args.cond):
         wandb.config.physics_dim = len(dataset.par_names)

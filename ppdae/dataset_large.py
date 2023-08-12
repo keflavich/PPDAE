@@ -350,7 +350,7 @@ class RobitailleGrid(Dataset):
             f"{ppd_path}/param_arr_gridandfiller{subset}_test.npy"
         )
         self.imgs_test = np.load(
-            "{ppd_path}/img_array_gridandfiller_{image_norm}norm{subset}_test.npy"
+            f"{ppd_path}/img_array_gridandfiller_{image_norm}norm{subset}_test.npy"
         )
         if len(self.imgs_test.shape) == 3:
             self.imgs_test = self.imgs_test.reshape(
@@ -368,7 +368,7 @@ class RobitailleGrid(Dataset):
 
         # for 1D models, do we really want this?
         self.transform_fx = torchvision.transforms.Compose(
-            [MyRotationTransform(), MyFlipVerticalTransform()]
+            []#MyRotationTransform(), MyFlipVerticalTransform()]
         )
 
         self.par_norm = par_norm
