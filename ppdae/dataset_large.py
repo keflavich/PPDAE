@@ -260,6 +260,11 @@ class RobitailleGrid(Dataset):
 
     Attributes
     ----------
+    ppd_path   : str
+        Path to the data
+        was previously
+        ppd_path = "%s/data/PPD/partitions" % (root)
+
     imgs        : array
         array with images
     meta        : array
@@ -299,11 +304,14 @@ class RobitailleGrid(Dataset):
 
     def __init__(
         self,
-        machine="exalearn",
+        ppd_path='/orange/adamginsburg/robitaille_models/ML_PPDAE/',
         transform=True,
         par_norm=False,
+        parnames=['star.radius', 'star.temperature', 'envelope.rho_0',
+                  'envelope.power', 'ambient.density', 'ambient.temperature',
+                  'scattering',]
         subset="25052021",
-        image_norm="global",
+        image_norm="",
     ):
         """
         Parameters
@@ -316,26 +324,17 @@ class RobitailleGrid(Dataset):
             load parameters that are scaled to [0,1] when True, or raw images
             when False.
         """
-        if machine == "local":
-            ppd_path = "%s/data/PPD/partitions" % (root)
-        elif machine == "colab":
-            ppd_path = "%s/PPDAE/partitions" % (colab_root)
-        elif machine == "exalearn":
-            ppd_path = "%s/PPD/partitions" % (exalearn_root)
-        else:
-            raise ("Wrong host, please select local, colab or exalearn")
 
         if subset != "":
-            subset = "_%s" % (subset)
+            subset = f"_{subset}"
 
         self.par_train = np.load(
-            "%s/param_arr_gridandfiller%s_train_all.npy" % (ppd_path, subset)
+            f"{ppd_path}/param_arr_gridandfiller{subset}_train_all.npy"
         )
 
         self.imgs_paths = sorted(
             glob.glob(
-                "%s/img_array_gridandfiller_%snorm%s_train_*.npy"
-                % (ppd_path, image_norm, subset)
+                f"{ppd_path}/img_array_gridandfiller_imagenorm{image_norm}{subset}_train_*.npy"
             )
         )
         self.imgs_memmaps = [np.load(path, mmap_mode="r") for path in self.imgs_paths]
@@ -345,16 +344,7 @@ class RobitailleGrid(Dataset):
             self.start_indices[index] = self.data_count
             self.data_count += memmap.shape[0]
 
-        self.par_names = [
-            "m_dust",
-            "Rc",
-            "f_exp",
-            "H0",
-            "Rin",
-            "sd_exp",
-            "alpha",
-            "inc",
-        ]
+        self.par_names = parnames
         self.par_test = np.load(
             "%s/param_arr_gridandfiller%s_test.npy" % (ppd_path, subset)
         )

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ppd-ae"
+name = "ppdae"
 version = "0.1.0"
 description = "Autoencoder model to generate images od edge-on protoplanetary disks."
 authors = ["Jorge Martinez-Palomera <jorgemarpa@ug.uchile.cl>"]
@@ -13,7 +13,7 @@ python = "^3.7"
 torch = "^1.6"
 numpy = "^1.18"
 wandb = "^0.10.4"
-torchvision = "^0.7"
+#torchvision = "^0.7"
 matplotlib = "^3.3.2"
 scikit-learn = "^0.22"
 
