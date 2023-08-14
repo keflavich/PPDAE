@@ -146,6 +146,7 @@ class Trainer(object):
             phy = phy.to(self.device)
 
             xhat, z = self.model(img, phy=phy)
+            #DEBUG print(f"xhat shape: {xhat.shape}, img.shape: {img.shape}, z.shape: {z.shape}")
             # calculate loss value
             loss = self._loss(img, xhat, train=True, ep=epoch)
             #  calculate the gradients
@@ -165,7 +166,7 @@ class Trainer(object):
 
         z_all = np.concatenate(z_all)
         z_all = z_all[np.random.choice(z_all.shape[0], 5000, replace=False), :]
-        print(z_all.shape)
+        print(f"z_all.shape: {z_all.shape}")
 
         # plot reconstructed images ever 2 epochs
         if epoch % 2 == 0:

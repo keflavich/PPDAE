@@ -149,8 +149,8 @@ parser.add_argument(
     "--conv-blocks",
     dest="conv_blocks",
     type=int,
-    default=5,
-    help="conv+actfx+pool blocks [5]",
+    default=4,
+    help="conv+actfx+pool blocks [4]",
 )
 parser.add_argument(
     "--model-name",
@@ -233,6 +233,12 @@ def main():
     wandb.config.update(args, allow_val_change=True)
 
     print("Physic dimension: ", wandb.config.physics_dim)
+    print(f"Par names: {dataset.par_names}")
+    print(f"imgs_test shape: {dataset.imgs_test.shape}")
+    print(f"par_test shape: {dataset.par_test.shape}")
+    print(f"par_train shape: {dataset.par_train.shape}")
+    print(f"imgs_memmaps shape: {[x.shape for x in dataset.imgs_memmaps]}")
+    print(f"data count: {dataset.data_count}")
 
     # Define AE model, Ops, and Train #
     # To used other AE models change the following line,
@@ -240,7 +246,8 @@ def main():
     if args.model_name == "ConvLinTrans_AE":
         model = ConvLinTrans_AE(
             latent_dim=args.latent_dim,
-            img_dim=dataset.img_dim,
+            img_width=dataset.img_width,
+            img_height=dataset.img_height,
             dropout=args.dropout,
             in_ch=dataset.img_channels,
             kernel=args.kernel_size,
@@ -293,6 +300,13 @@ def main():
     wandb.config.n_train_params = count_parameters(model)
     print("Summary:")
     print(model)
+
+    # check the shape of the input & model at least once
+    for i, (img, phy) in enumerate(train_loader):
+        xhat, z = model(img, phy=phy)
+        print(f"xhat shape: {xhat.shape}, img.shape: {img.shape}, z.shape: {z.shape}")
+        break
+
     print("Num of trainable params: ", wandb.config.n_train_params)
     print("\n")
 

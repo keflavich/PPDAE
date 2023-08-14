@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import transforms
 import torchvision
 from bisect import bisect
 from sklearn import preprocessing
@@ -307,9 +308,6 @@ class RobitailleGrid(Dataset):
         ppd_path='/orange/adamginsburg/robitaille_models/ML_PPDAE/',
         transform=True,
         par_norm=False,
-        parnames=['star.radius', 'star.temperature', 'envelope.rho_0',
-                  'envelope.power', 'ambient.density', 'ambient.temperature',
-                  'scattering',],
         subset="25052021",
         image_norm="image",
         machine=None,
@@ -345,7 +343,9 @@ class RobitailleGrid(Dataset):
             self.start_indices[index] = self.data_count
             self.data_count += memmap.shape[0]
 
-        self.par_names = parnames
+        self.par_names = np.load(
+            f"{ppd_path}/{subset.lstrip('_')}_parnames.npy"
+        )
         self.par_test = np.load(
             f"{ppd_path}/param_arr_gridandfiller{subset}_test.npy"
         )
@@ -362,13 +362,18 @@ class RobitailleGrid(Dataset):
                 )
             )
 
-        self.img_dim = self.imgs_test[0].shape[-1]
+        # max of the two image dimensions, since below we're using Resize
+        self.img_dim = max(self.imgs_test[0].shape[2:])
+
+        # width and height are in that order to make the model work...?
+        self.img_width = self.imgs_test[0].shape[1]
+        self.img_height = self.imgs_test[0].shape[2]
         self.img_channels = self.imgs_test[0].shape[0]
         self.transform = transform
 
         # for 1D models, do we really want this?
         self.transform_fx = torchvision.transforms.Compose(
-            []#MyRotationTransform(), MyFlipVerticalTransform()]
+            []#[torchvision.transforms.Resize(max(self.imgs_test.shape[2:]))]#MyRotationTransform(), MyFlipVerticalTransform()]
         )
 
         self.par_norm = par_norm

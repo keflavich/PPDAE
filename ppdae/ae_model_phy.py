@@ -30,7 +30,7 @@ def conv_out(l0, k, st):
 
 def pool_out(l0, k, st):
     """
-    return the output size after applying a convolution:
+    return the output size after applying a pool:
     Parameters
     ----------
     l0 : int
@@ -87,12 +87,14 @@ class ConvLinTrans_AE(nn.Module):
 
     def __init__(
         self,
+        img_width,
+        img_height,
         latent_dim=32,
         img_dim=28,
         dropout=0.2,
         in_ch=1,
         kernel=3,
-        n_conv_blocks=5,
+        n_conv_blocks=4,
         phy_dim=0,
         feed_phy=True,
     ):
@@ -114,15 +116,17 @@ class ConvLinTrans_AE(nn.Module):
         """
         super(ConvLinTrans_AE, self).__init__()
         self.latent_dim = latent_dim
-        self.img_width = self.img_height = img_dim
-        self.img_size = self.img_width * self.img_height
+        self.img_width = img_width
+        self.img_height = img_height
         self.in_ch = in_ch
         self.phy_dim = phy_dim
         self.feed_phy = feed_phy
 
+
         # Encoder specification
         self.enc_conv_blocks = nn.Sequential()
         h_ch = in_ch
+        poolsize = 2
         for i in range(n_conv_blocks):
             self.enc_conv_blocks.add_module(
                 "conv2d_%i1" % (i + 1),
@@ -141,15 +145,46 @@ class ConvLinTrans_AE(nn.Module):
             )
             self.enc_conv_blocks.add_module("relu_%i2" % (i + 1), nn.ReLU())
             self.enc_conv_blocks.add_module(
-                "maxpool_%i" % (i + 1), nn.MaxPool2d(2, stride=2)
+                "maxpool_%i" % (i + 1), nn.MaxPool2d(poolsize, stride=2)
             )
             h_ch *= 2
+            #DEBUG print(f"img_dim before first conv w/kernel {kernel}: {img_dim}")
             img_dim = conv_out(img_dim, kernel, 1)
+            #DEBUG print(f"img_dim after first conv w/kernel {kernel}: {img_dim}")
             img_dim = conv_out(img_dim, kernel, 1)
+            #DEBUG print(f"img_dim after second conv w/kernel {kernel}: {img_dim}")
             img_dim = pool_out(img_dim, 2, 2)
+            #DEBUG print(f"img_dim after pool: {img_dim}")
+
+            #DEBUG print(f"img_width before first conv w/kernel {kernel}: {img_width}")
+            img_width = conv_out(img_width, kernel, 1)
+            #DEBUG print(f"img_width after first conv w/kernel {kernel}: {img_width}")
+            img_width = conv_out(img_width, kernel, 1)
+            #DEBUG print(f"img_width after second conv w/kernel {kernel}: {img_width}")
+            img_width = pool_out(img_width, 2, 2)
+            #DEBUG print(f"img_width after pool: {img_width}")
+
+            #DEBUG print(f"img_height before first conv w/kernel {kernel}: {img_height}")
+            img_height = conv_out(img_height, kernel, 1)
+            #DEBUG print(f"img_height after first conv w/kernel {kernel}: {img_height}")
+            img_height = conv_out(img_height, kernel, 1)
+            #DEBUG print(f"img_height after second conv w/kernel {kernel}: {img_height}")
+            img_height = pool_out(img_height, 2, 2)
+            #DEBUG print(f"img_height after pool: {img_height}")
+
+        #DEBUG print(f"settin enc_linear.  in_ch={in_ch}, h_ch={h_ch}, img_dim={img_dim}, phy_dim={phy_dim}, latent_dim={self.latent_dim}, n_conv_blocks={n_conv_blocks}")
+
+        # this is what it was
+        first_linear_size = h_ch * img_dim ** 2 + phy_dim
+        #DEBUG print(f"first_linear_size={first_linear_size} kernel={kernel} poolsize={poolsize} n_conv_blocks={n_conv_blocks}")
+
+        # maybe it should be this?
+        first_linear_size = img_width * img_height * h_ch + phy_dim
+        #DEBUG print(f"first_linear_size={first_linear_size} kernel={kernel} poolsize={poolsize} n_conv_blocks={n_conv_blocks}")
+
 
         self.enc_linear = nn.Sequential(
-            nn.Linear(h_ch * img_dim ** 2 + phy_dim, 128, bias=False),
+            nn.Linear(first_linear_size, 128, bias=False),
             nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, self.latent_dim),
@@ -223,8 +258,11 @@ class ConvLinTrans_AE(nn.Module):
         -------
             latent code
         """
+        #DEBUG print("Before conv_blocks: ", x.shape)
         x = self.enc_conv_blocks(x)
+        #DEBUG print("After conv_blocks: ", x.shape)
         x = x.flatten(1)
+        #DEBUG print("After flatten: ", x.shape)
         if self.phy_dim > 0 and phy is not None:
             x = torch.cat([x, phy], dim=1)
         x = self.enc_linear(x)
