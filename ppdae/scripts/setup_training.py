@@ -103,21 +103,30 @@ def setup_training_for_geometry(
                         dtype=np.float32,
                         mode='r+')
 
-    make_test_data(geometry, pars, arr, rootdir=rootdir)
+    make_test_data(geometry, pars[:nrows], arr, rootdir=rootdir)
 
 def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
 
-    import runpy
-    scriptpath = "{rootdir}/PPDAE/ppdae/scripts/ae_main.py"
+    from ppdae.scripts.ae_main import main as ae_main, args
+    #scriptpath = "{rootdir}/PPDAE/ppdae/scripts/ae_main.py"
 
     for max_rows in (10000, None):
         for geometry in ('spubsmi', 'spubhmi'):
             print(f"Setting up {geometry} with limit {max_rows}")
             setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
             print(f"Running training for {geometry} with limit {max_rows}")
-            runpy.run_module(mod_name='main',
-                             run_name=scriptpath,
-                             argv="--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='spubsmi'".split())
+
+            args.latent_dim = 16
+            args.batch_size = 128
+            args.machine = 'hpg'
+            args.data = 'Robitaille'
+            args.subset = geometry
+
+            ae_main(args=args)
+
+            #runpy.run_module(mod_name='main',
+            #                 run_name=scriptpath,
+            #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
             print(f"done running training for {geometry} with limit {max_rows}")
     #%run $rootdir/PPDAE/ppdae/scripts/ae_main.py --latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='spubsmi'
 
