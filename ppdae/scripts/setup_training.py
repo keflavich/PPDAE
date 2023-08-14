@@ -9,6 +9,7 @@ import hyperion.model
 
 from sklearn.model_selection import train_test_split
 
+from ppdae.scripts.ae_main import main as ae_main, args
 
 def make_test_data(geometry, pars, imgs, rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
     print(f"Beginning setting up training data for {geometry}")
@@ -59,6 +60,7 @@ def setup_training_for_geometry(
     hyperion models can only be read from relative paths
     """
 
+    old_cwd = os.getcwd()
     os.chdir(basepath)
     gridpath = f'{basepath}/grids-{gridversion}/{geometry}/output'
 
@@ -103,12 +105,15 @@ def setup_training_for_geometry(
                         dtype=np.float32,
                         mode='r+')
 
+    # we don't generally have write access to the model-containing directory,
+    # so change back to somewhere we (hopefully) do
+    os.chdir(old_cwd)
     make_test_data(geometry, pars[:nrows], arr, rootdir=rootdir)
 
 def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
 
-    from ppdae.scripts.ae_main import main as ae_main, args
     #scriptpath = "{rootdir}/PPDAE/ppdae/scripts/ae_main.py"
+    os.chdir(rootdir)
 
     for max_rows in (10000, None):
         for geometry in ('spubsmi', 'spubhmi'):
@@ -120,7 +125,7 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
             args.batch_size = 128
             args.machine = 'hpg'
             args.data = 'Robitaille'
-            args.subset = geometry
+            args.subset = f'{geometry}_{max_rows}'
 
             ae_main(args=args)
 
