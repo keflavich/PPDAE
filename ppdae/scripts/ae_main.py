@@ -176,7 +176,7 @@ args = parser.parse_args()
 
 
 # run main program
-def main():
+def main(args=args):
     # asses which device will be used, CPY or GPU
     device = torch.device("cuda" if torch.cuda.is_available() else
                           "mps" if torch.backends.mps.is_available() else
