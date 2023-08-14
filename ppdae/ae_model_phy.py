@@ -47,6 +47,25 @@ def pool_out(l0, k, st):
     return int((l0 - k) / st + 1)
 
 
+class ScalingLayer(nn.Module):
+    # https://chat.openai.com/share/4c71ba0d-a1ac-4975-b367-744e00ae2157
+    def __init__(self, in_features):
+        super(ScalingLayer, self).__init__()
+        self.scale = nn.Parameter(torch.ones(1, in_features))  # Learnable scaling parameter
+
+    def forward(self, x):
+        scaled_x = x * self.scale
+        return scaled_x
+
+class RescaleLayer(nn.Module):
+    def forward(self, x):
+        # Rescale input x to the range [0, 1]
+        minval = x.min()
+        range = x.max() - minval
+        x = (x - minval) / range
+        return x
+
+
 class ConvLinTrans_AE(nn.Module):
     """
     Autoencoder class with user defined latent dimension, image size,
@@ -383,6 +402,7 @@ class ConvLinTrans_AE_1d(nn.Module):
 
         # Encoder specification
         self.enc_conv_blocks = nn.Sequential()
+        self.enc_conv_blocks.add_module(RescaleLayer()) # to preserve amplitude scaling
         h_ch = in_ch
         for i in range(n_conv_blocks):
             self.enc_conv_blocks.add_module(
@@ -470,6 +490,7 @@ class ConvLinTrans_AE_1d(nn.Module):
             nn.ReLU(),
             nn.Conv1d(4, in_ch, 7),
             nn.Sigmoid(),
+            nn.ScalingLayer(), # to preserve amplitude scaling
         )
 
     def encode(self, x, phy=None):
