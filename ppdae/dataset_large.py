@@ -384,6 +384,9 @@ class RobitailleGrid(Dataset):
         return len(self.par_train) + len(self.par_test)
 
     def __getitem__(self, index):
+        if index >= self.imgs_memmaps[0].shape[0]:
+            testind = index-self.imgs_memmaps[0].shape[0]
+            return np.array(self.imgs_test[testind]), self.par_test[testind]
         memmap_index = bisect(self.start_indices, index) - 1
         index_in_memmap = index - self.start_indices[memmap_index]
         img = self.imgs_memmaps[memmap_index][index_in_memmap]
