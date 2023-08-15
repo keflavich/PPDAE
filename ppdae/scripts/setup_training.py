@@ -11,7 +11,8 @@ from sklearn.model_selection import train_test_split
 
 from ppdae.scripts.ae_main import main as ae_main, args
 
-def make_test_data(geometry, pars, imgs, rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
+def make_test_data(geometry, pars, imgs,
+                   rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
     print(f"Beginning setting up training data for {geometry}")
     train_idx, test_idx = train_test_split(np.arange(len(pars)),
                                            test_size=.2, random_state=99)
@@ -74,7 +75,7 @@ def setup_training_for_geometry(
 
     if max_rows is not None and npars > max_rows:
         nrows = max_rows
-        training_filename = f'{rootdir}/{geometry}_temperature_grid_for_ML_rows{max_rows}.npy'
+        training_filename = f'{rootdir}/{geometry}_{max_rows}_temperature_grid_for_ML.npy'
     else:
         nrows = npars
         training_filename = f'{rootdir}/{geometry}_temperature_grid_for_ML.npy'
@@ -93,10 +94,12 @@ def setup_training_for_geometry(
                         mode='w+')
 
         for ii, mn in tqdm(enumerate(pars['MODEL_NAME'][:nrows])):
-            arr[ii, :, :, :] = (model
-                                .ModelOutput(f'{gridpath}/{mn[:2].lower()}/{mn[:-3]}.rtout')
-                                .get_quantities()['temperature'][0].array
-                               )
+            try:
+                mod = hyperion.model.ModelOutput(f'{gridpath}/{mn[:2].lower()}/{mn[:-3]}.rtout')
+                arr[ii, :, :, :] = (mod.get_quantities()['temperature'][0].array)
+            except Exception as ex:
+                arr[ii, :, :, :] = 0
+                print(f"Model {geometry} {mn} failed to read with exception {ex}")
 
         log.setLevel('INFO')
     else:
@@ -108,32 +111,65 @@ def setup_training_for_geometry(
     # we don't generally have write access to the model-containing directory,
     # so change back to somewhere we (hopefully) do
     os.chdir(old_cwd)
-    make_test_data(geometry, pars[:nrows], arr, rootdir=rootdir)
+    geometry_name = f'{geometry}_{max_rows}' if max_rows is not None else geometry
+    make_test_data(geometry_name, pars[:nrows], arr, rootdir=rootdir)
+
+def link_wandb():
+    import yaml, glob
+    for fn in glob.glob("/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/*/files/config.yaml"):
+        with open(fn, 'r') as fh:
+            meta = yaml.safe_load(fh)
+        
+        modelfile = fn.replace("config.yaml", "model.pt")
+        if os.path.exists(modelfile):
+            if device.type == 'cpu':
+                model_parameters = torch.load(modelfile, map_location=torch.device('cpu'))
+            else:
+                model_parameters = torch.load(modelfile)
+
+            with open(fn.replace("config.yaml", "output.log"), 'r') as fh:
+                for row in fh.readlines():
+                    if 'data count' in row:
+                        size = int(row.split()[-1])
+            basedir = os.path.dirname(os.path.dirname(fn))
+            bbasedir = os.path.dirname(basedir)
+            tgt = f'{bbasedir}/{meta["subset"]["value"]}'
+            if not os.path.exists(tgt):
+                print(f"Creating {tgt} with size {size}")
+                os.symlink(basedir, tgt)
+            else:
+                print(f"{tgt} with size {size} exists")
 
 def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
+
+    link_wandb()
 
     #scriptpath = "{rootdir}/PPDAE/ppdae/scripts/ae_main.py"
     os.chdir(rootdir)
 
     for max_rows in (10000, None):
-        for geometry in ('spubsmi', 'spubhmi'):
-            print(f"Setting up {geometry} with limit {max_rows}")
-            setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
-            print(f"Running training for {geometry} with limit {max_rows}")
+        for geometry in ('spu-smi', 'spu-hmi', 'spubsmi', 'spubhmi'):
+            maxr_str = f"_{max_rows}" if max_rows is not None else ""
+            if not os.path.exists(f'/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/{geometry}{maxr_str}'):
+                print(f"Setting up {geometry} with limit {max_rows}")
+                setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
+                print(f"Running training for {geometry} with limit {max_rows}")
 
-            args.latent_dim = 16
-            args.batch_size = 128
-            args.machine = 'hpg'
-            args.data = 'Robitaille'
-            args.subset = f'{geometry}_{max_rows}'
+                args.latent_dim = 16
+                args.batch_size = 128
+                args.machine = 'hpg'
+                args.data = 'Robitaille'
+                args.subset = f'{geometry}_{max_rows}'
 
-            ae_main(args=args)
+                ae_main(args=args)
 
-            #runpy.run_module(mod_name='main',
-            #                 run_name=scriptpath,
-            #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
-            print(f"done running training for {geometry} with limit {max_rows}")
+                #runpy.run_module(mod_name='main',
+                #                 run_name=scriptpath,
+                #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
+                print(f"done running training for {geometry} with limit {max_rows}")
     #%run $rootdir/PPDAE/ppdae/scripts/ae_main.py --latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='spubsmi'
+
+    link_wandb()
 
 if __name__ == "__main__":
     main()

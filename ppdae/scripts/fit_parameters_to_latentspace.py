@@ -93,7 +93,7 @@ def load_predictions(model, dataset):
 
     return all_predictions, all_params
 
-def load_everything():
+def load_everything(wandb_str='spubsmi_10000'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -101,7 +101,7 @@ def load_everything():
     dataset = RobitailleGrid(machine='hpg', transform=False, par_norm=False,
                              subset=geometry, image_norm='image',)
 
-    model = load_wandb_run('run-20230813_161003-2htznd5g')
+    model = load_wandb_run(wandb_str)
 
     all_predictions, all_params = load_predictions(model, dataset)
 
@@ -109,7 +109,7 @@ def load_everything():
 
     return model, dataset, all_predictions, regressor
 
-def predict_from_parameters(parameters, regressor, model=load_wandb_run('run-20230813_161003-2htznd5g')):
+def predict_from_parameters(parameters, regressor, model=load_wandb_run('spubsmi_10000')):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
