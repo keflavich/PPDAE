@@ -115,11 +115,13 @@ def setup_training_for_geometry(
     make_test_data(geometry_name, pars[:nrows], arr, rootdir=rootdir)
 
 def link_wandb():
-    import yaml, glob
+    import yaml, glob, torch
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+
     for fn in glob.glob("/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/*/files/config.yaml"):
         with open(fn, 'r') as fh:
             meta = yaml.safe_load(fh)
-        
+
         modelfile = fn.replace("config.yaml", "model.pt")
         if os.path.exists(modelfile):
             if device.type == 'cpu':

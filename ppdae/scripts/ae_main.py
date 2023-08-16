@@ -20,6 +20,7 @@ from ppdae.ae_model_phy import ConvLinTrans_AE, ConvLinTrans_AE_1d
 from ppdae.ae_training_phy import Trainer
 from ppdae.utils import count_parameters, str2bool
 import wandb
+import wandb.sdk.lib.config_util
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -219,8 +220,12 @@ def main(args=args):
     )
 
     # Initialize W&B project and save user defined flags
-    wandb.init(entity=args.entity, project="ppdae", tags=["AE"])
-    wandb.config.update(args)
+    try:
+        run = wandb.init(entity=args.entity, project="ppdae", tags=["AE"])
+        wandb.config.update(args)
+    except wandb.sdk.lib.config_util.ConfigError:
+        wandb.reinit()
+        wandb.config.update(args)
     wandb.config.rnd_seed = rnd_seed
 
     if args.data == "PPD" and str2bool(args.cond):
