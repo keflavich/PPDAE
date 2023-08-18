@@ -11,12 +11,16 @@ from sklearn.model_selection import train_test_split
 
 from ppdae.scripts.ae_main import main as ae_main, args
 
-def make_test_data(geometry, pars, imgs,
+def make_test_data(geometry, pars, imgs, max_rows=None,
                    rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
     print(f"Beginning setting up training data for {geometry}")
     train_idx, test_idx = train_test_split(np.arange(len(pars)),
                                            test_size=.2, random_state=99)
 
+    if max_rows is not None:
+        geoname = f'{geometry}_{max_rows}'
+    else:
+        geoname = geometry
 
     # parameters_to_fit = ['star.radius', 'star.temperature', 'envelope.rho_0',
     #  'envelope.power', 'ambient.density', 'ambient.temperature', 'scattering',
@@ -35,18 +39,18 @@ def make_test_data(geometry, pars, imgs,
     print(f"There are {len(parameters_to_fit)} parameters")
 
     pars_arrlike = np.array(pars[parameters_to_fit]).view(float).reshape(len(pars), len(parameters_to_fit))
-    np.save(f'{rootdir}/param_arr_gridandfiller_{geometry}_train_all.npy',
+    np.save(f'{rootdir}/param_arr_gridandfiller_{geoname}_train_all.npy',
             pars_arrlike[train_idx].astype("float32"),
            )
-    np.save(f'{rootdir}/param_arr_gridandfiller_{geometry}_test.npy',
+    np.save(f'{rootdir}/param_arr_gridandfiller_{geoname}_test.npy',
             pars_arrlike[test_idx].astype("float32")
            )
-    np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geometry}_train_all.npy', imgs[train_idx].astype("float32"))
-    np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geometry}_test.npy', imgs[test_idx].astype("float32"))
-    np.save(f'{rootdir}/{geometry}_parnames.npy',
+    np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_train_all.npy', imgs[train_idx].astype("float32"))
+    np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy', imgs[test_idx].astype("float32"))
+    np.save(f'{rootdir}/{geoname}_parnames.npy',
             parameters_to_fit)
-    print(f"Saved '{rootdir}/img_array_gridandfiller_imagenorm_{geometry}_test.npy'")
-    print(f"Done setting up training data for {geometry} with training shape {train_idx.shape} and testing shape {test_idx.shape}")
+    print(f"Saved '{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy'")
+    print(f"Done setting up training data for {geoname} with training shape {train_idx.shape} and testing shape {test_idx.shape}")
 
 
 def setup_training_for_geometry(
@@ -112,7 +116,7 @@ def setup_training_for_geometry(
     # so change back to somewhere we (hopefully) do
     os.chdir(old_cwd)
     geometry_name = f'{geometry}_{max_rows}' if max_rows is not None else geometry
-    make_test_data(geometry_name, pars[:nrows], arr, rootdir=rootdir)
+    make_test_data(geometry_name, pars[:nrows], arr, rootdir=rootdir, max_rows=max_rows)
 
 def link_wandb():
     import yaml, glob, torch
@@ -161,7 +165,10 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
                 args.batch_size = 128
                 args.machine = 'hpg'
                 args.data = 'Robitaille'
-                args.subset = f'{geometry}_{max_rows}'
+                if max_rows is not None:
+                    args.subset = f'{geometry}_{max_rows}'
+                else:
+                    args.subset = f'{geometry}'
 
                 ae_main(args=args)
 

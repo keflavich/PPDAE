@@ -93,11 +93,10 @@ def load_predictions(model, dataset):
 
     return all_predictions, all_params
 
-def load_everything(wandb_str='spubsmi_10000'):
+def load_everything(wandb_str='spubsmi_10000', geometry='spubsmi'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    geometry = 'spubsmi'
     dataset = RobitailleGrid(machine='hpg', transform=False, par_norm=False,
                              subset=geometry, image_norm='image',)
 
@@ -126,18 +125,23 @@ def predict_from_parameters(parameters, regressor, model=load_wandb_run('spubsmi
 
     return img.squeeze()
 
-def main():
-    model, dataset, all_predictions, regressor = load_everything()
+def main(geometry='spubsmi', max_rows=None):
+    if max_rows is not None:
+        geoname = f'{geometry}_{max_rows}'
+    else:
+        geoname = geometry
+    model, dataset, all_predictions, regressor = load_everything(wandb_str=geoname, geometry=geometry)
+
 
     #pars_arr = np.array(np.array(pars[15000]['star.radius', 'star.temperature', 'disk.mass', 'disk.rmax', 'disk.beta', 'disk.p', 'disk.h100', 'envelope.rho_0', 'envelope.rc', 'cavity.power', 'cavity.theta_0', 'cavity.rho_0', 'ambient.density', 'ambient.temperature', 'scattering', 'inclination']).tolist())
     #pars_arr = torch.tensor(pars_arr, dtype=torch.float32)
-    example = predict_from_parameters(np.array([[ 4.1610e-01,  9.7610e+03,  6.7770e-03,
-                                       2.8940e+02,  1.0070e+00, -1.2050e+00,
-                                       4.2020e+00,  3.7470e-17,  2.8940e+02,
-                                       1.0620e+00, 2.2050e+01,  6.7120e-22,
-                                       1.0000e-23,  1.0000e+01,  1.0000e+00,
-                                       6.7665e+01]]),
-                                      regressor)
+    # example = predict_from_parameters(np.array([[ 4.1610e-01,  9.7610e+03,  6.7770e-03,
+    #                                    2.8940e+02,  1.0070e+00, -1.2050e+00,
+    #                                    4.2020e+00,  3.7470e-17,  2.8940e+02,
+    #                                    1.0620e+00, 2.2050e+01,  6.7120e-22,
+    #                                    1.0000e-23,  1.0000e+01,  1.0000e+00,
+    #                                    6.7665e+01]]),
+    #                                   regressor)
     globals().update(locals())
 
 if __name__ == "__main__":

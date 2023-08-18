@@ -220,12 +220,8 @@ def main(args=args):
     )
 
     # Initialize W&B project and save user defined flags
-    try:
-        run = wandb.init(entity=args.entity, project="ppdae", tags=["AE"])
-        wandb.config.update(args)
-    except wandb.sdk.lib.config_util.ConfigError:
-        wandb.reinit()
-        wandb.config.update(args)
+    run = wandb.init(entity=args.entity, project="ppdae", tags=["AE"], reinit=True)
+    wandb.config.update(args)
     wandb.config.rnd_seed = rnd_seed
 
     if args.data == "PPD" and str2bool(args.cond):
