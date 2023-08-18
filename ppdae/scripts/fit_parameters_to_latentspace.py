@@ -93,14 +93,15 @@ def load_predictions(model, dataset):
 
     return all_predictions, all_params
 
-def load_everything(wandb_str='spubsmi_10000', geometry='spubsmi'):
+def load_everything(wandb_str='spubsmi_10000', geometry='spubsmi',
+        basepath='/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE'):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = RobitailleGrid(machine='hpg', transform=False, par_norm=False,
-                             subset=geometry, image_norm='image',)
+                             subset=geoname, image_norm='image',)
 
-    model = load_wandb_run(wandb_str)
+    model = load_wandb_run(wandb_str, basepath=basepath)
 
     all_predictions, all_params = load_predictions(model, dataset)
 
@@ -145,4 +146,4 @@ def main(geometry='spubsmi', max_rows=None):
     globals().update(locals())
 
 if __name__ == "__main__":
-    main()
+    print("just kidding, no main")
