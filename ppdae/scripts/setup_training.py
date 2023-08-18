@@ -13,7 +13,7 @@ from ppdae.scripts.ae_main import main as ae_main, args
 
 def make_test_data(geometry, pars, imgs, max_rows=None,
                    rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
-    print(f"Beginning setting up training data for {geometry}")
+    print(f"Beginning setting up training data for {geometry}", flush=True)
     train_idx, test_idx = train_test_split(np.arange(len(pars)),
                                            test_size=.2, random_state=99)
 
@@ -35,8 +35,8 @@ def make_test_data(geometry, pars, imgs, max_rows=None,
         # if the images are 2d
         parameters_to_fit.remove('inclination')
 
-    print(f"Fit parameters are {parameters_to_fit}")
-    print(f"There are {len(parameters_to_fit)} parameters")
+    print(f"Fit parameters are {parameters_to_fit}", flush=True)
+    print(f"There are {len(parameters_to_fit)} parameters", flush=True)
 
     pars_arrlike = np.array(pars[parameters_to_fit]).view(float).reshape(len(pars), len(parameters_to_fit))
     np.save(f'{rootdir}/param_arr_gridandfiller_{geoname}_train_all.npy',
@@ -49,8 +49,8 @@ def make_test_data(geometry, pars, imgs, max_rows=None,
     np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy', imgs[test_idx].astype("float32"))
     np.save(f'{rootdir}/{geoname}_parnames.npy',
             parameters_to_fit)
-    print(f"Saved '{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy'")
-    print(f"Done setting up training data for {geoname} with training shape {train_idx.shape} and testing shape {test_idx.shape}")
+    print(f"Saved '{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy'", flush=True)
+    print(f"Done setting up training data for {geoname} with training shape {train_idx.shape} and testing shape {test_idx.shape}", flush=True)
 
 
 def setup_training_for_geometry(
@@ -85,7 +85,7 @@ def setup_training_for_geometry(
         training_filename = f'{rootdir}/{geometry}_temperature_grid_for_ML.npy'
 
     filesize = (nrows * np.product(temshape) * 4 * u.byte).to(u.GB)
-    print(f"training file will have size {filesize}")
+    print(f"training file will have size {filesize}", flush=True)
 
     if not os.path.exists(training_filename):
         # this takes about 20 minutes for 10k parameters
@@ -103,7 +103,7 @@ def setup_training_for_geometry(
                 arr[ii, :, :, :] = (mod.get_quantities()['temperature'][0].array)
             except Exception as ex:
                 arr[ii, :, :, :] = 0
-                print(f"Model {geometry} {mn} failed to read with exception {ex}")
+                print(f"Model {geometry} {mn} failed to read with exception {ex}", flush=True)
 
         log.setLevel('INFO')
     else:
@@ -141,10 +141,10 @@ def link_wandb():
             bbasedir = os.path.dirname(basedir)
             tgt = f'{bbasedir}/{meta["subset"]["value"]}'
             if not os.path.exists(tgt):
-                print(f"Creating {tgt} with size {size}")
+                print(f"Creating {tgt} with size {size}", flush=True)
                 os.symlink(basedir, tgt)
             else:
-                print(f"{tgt} with size {size} exists")
+                print(f"{tgt} with size {size} exists", flush=True)
 
 def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
 
@@ -157,9 +157,9 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
         for geometry in ('spu-smi', 'spu-hmi', 'spubsmi', 'spubhmi'):
             maxr_str = f"_{max_rows}" if max_rows is not None else ""
             if not os.path.exists(f'/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/{geometry}{maxr_str}'):
-                print(f"Setting up {geometry} with limit {max_rows}")
+                print(f"Setting up {geometry} with limit {max_rows}", flush=True)
                 setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
-                print(f"Running training for {geometry} with limit {max_rows}")
+                print(f"Running training for {geometry} with limit {max_rows}", flush=True)
 
                 args.latent_dim = 16
                 args.batch_size = 128
@@ -175,7 +175,7 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
                 #runpy.run_module(mod_name='main',
                 #                 run_name=scriptpath,
                 #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
-                print(f"done running training for {geometry} with limit {max_rows}")
+                print(f"done running training for {geometry} with limit {max_rows}", flush=True)
     #%run $rootdir/PPDAE/ppdae/scripts/ae_main.py --latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='spubsmi'
 
     link_wandb()
