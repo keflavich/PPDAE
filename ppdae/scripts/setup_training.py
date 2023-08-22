@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 from tqdm.auto import tqdm
 import os
 
@@ -9,7 +10,6 @@ import hyperion.model
 
 from sklearn.model_selection import train_test_split
 
-from ppdae.scripts.ae_main import main as ae_main, args
 
 def make_test_data(geometry, pars, imgs, max_rows=None,
                    rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
@@ -47,8 +47,7 @@ def make_test_data(geometry, pars, imgs, max_rows=None,
            )
     np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_train_all.npy', imgs[train_idx].astype("float32"))
     np.save(f'{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy', imgs[test_idx].astype("float32"))
-    np.save(f'{rootdir}/{geoname}_parnames.npy',
-            parameters_to_fit)
+    np.save(f'{rootdir}/{geoname}_parnames.npy', parameters_to_fit)
     print(f"Saved '{rootdir}/img_array_gridandfiller_imagenorm_{geoname}_test.npy'", flush=True)
     print(f"Done setting up training data for {geoname} with training shape {train_idx.shape} and testing shape {test_idx.shape}", flush=True)
 
@@ -146,7 +145,10 @@ def link_wandb():
             else:
                 print(f"{tgt} with size {size} exists", flush=True)
 
-def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
+def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/', setup_only=False):
+
+    if not setup_only:
+        from ppdae.scripts.ae_main import main as ae_main, args
 
     link_wandb()
 
@@ -154,32 +156,44 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/'):
     os.chdir(rootdir)
 
     for max_rows in (10000, None):
-        for geometry in ('spu-smi', 'spu-hmi', 'spubsmi', 'spubhmi'):
+        for geometry in ('spu-hmi', 'spu-smi', 'spubsmi', 'spubhmi'):
             maxr_str = f"_{max_rows}" if max_rows is not None else ""
             if not os.path.exists(f'/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/{geometry}{maxr_str}'):
                 print(f"Setting up {geometry} with limit {max_rows}", flush=True)
                 setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
-                print(f"Running training for {geometry} with limit {max_rows}", flush=True)
 
-                args.latent_dim = 16
-                args.batch_size = 128
-                args.machine = 'hpg'
-                args.data = 'Robitaille'
-                if max_rows is not None:
-                    args.subset = f'{geometry}_{max_rows}'
-                else:
-                    args.subset = f'{geometry}'
+                if not setup_only:
+                    print(f"Running training for {geometry} with limit {max_rows}", flush=True)
+                    args.latent_dim = 16
+                    args.batch_size = 128
+                    args.machine = 'hpg'
+                    args.data = 'Robitaille'
+                    if max_rows is not None:
+                        args.subset = f'{geometry}_{max_rows}'
+                    else:
+                        args.subset = f'{geometry}'
 
-                ae_main(args=args)
+                    ae_main(args=args)
 
-                #runpy.run_module(mod_name='main',
-                #                 run_name=scriptpath,
-                #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
-                print(f"done running training for {geometry} with limit {max_rows}", flush=True)
+                    #runpy.run_module(mod_name='main',
+                    #                 run_name=scriptpath,
+                    #                 argv=f"--latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='geometry'".split())
+                    print(f"done running training for {geometry} with limit {max_rows}", flush=True)
     #%run $rootdir/PPDAE/ppdae/scripts/ae_main.py --latent-dim 16 --batch-size 128 --machine hpg --data Robitaille --subset='spubsmi'
 
     link_wandb()
 
 if __name__ == "__main__":
-    main()
+
+    parser = argparse.ArgumentParser(description="...")
+    parser.add_argument(
+        "--setup-only",
+        dest="setup",
+        action="store_true",
+        default=False,
+        help="Only do the setup",
+    )
+    args = parser.parse_args()
+
+    main(setup_only=args.setup)
     #sbatch --job-name=gpu-ppdae --account=astronomy-dept --qos=astronomy-dept -p gpu --gpus=a100:1 --ntasks=1 --cpus-per-task=8 --nodes=1 --mem=64gb --time=96:00:00 --wrap "/blue/adamginsburg/adamginsburg/miniconda3/envs/python39/bin/python /orange/adamginsburg/robitaille_models/ML_PPDAE/PPDAE/ppdae/scripts/setup_training.py"
