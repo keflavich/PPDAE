@@ -158,13 +158,15 @@ def main(rootdir='/orange/adamginsburg/robitaille_models/ML_PPDAE/', setup_only=
     for max_rows in (10000, None):
         for geometry in ('spu-hmi', 'spu-smi', 'spubsmi', 'spubhmi'):
             maxr_str = f"_{max_rows}" if max_rows is not None else ""
-            if not os.path.exists(f'/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/{geometry}{maxr_str}'):
+            geoname = f'{geometry}{maxr_str}'
+            if not os.path.exists(f'/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE/wandb/{geoname}'):
                 print(f"Setting up {geometry} with limit {max_rows}", flush=True)
                 setup_training_for_geometry(rootdir=rootdir, max_rows=max_rows, geometry=geometry)
 
                 if not setup_only:
                     print(f"Running training for {geometry} with limit {max_rows}", flush=True)
-                    args.latent_dim = 16
+                    parnames = np.load(f'{rootdir}/{geoname}_parnames.npy')
+                    args.latent_dim = len(parnames)
                     args.batch_size = 128
                     args.machine = 'hpg'
                     args.data = 'Robitaille'

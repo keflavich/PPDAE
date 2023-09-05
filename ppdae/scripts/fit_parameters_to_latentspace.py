@@ -10,10 +10,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
-def load_wandb_run(wandbstr, basepath='/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE'):
+def load_wandb_run(wandbstr, basepath='/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE', npars=16):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = ConvLinTrans_AE(img_width=300, img_height=400, phy_dim=16,
-                            n_conv_blocks=4, latent_dim=16,
+    model = ConvLinTrans_AE(img_width=300, img_height=400, phy_dim=npars,
+                            n_conv_blocks=4, latent_dim=npars,
                             feed_phy=False).to(device)
 
     # config seems to be wrong?
@@ -96,12 +96,17 @@ def load_predictions(model, dataset):
 def load_everything(wandb_str='spubsmi_10000', geometry='spubsmi',
         basepath='/blue/adamginsburg/adamginsburg/robitaille/ML_PPDAE'):
 
+    geoname = wandb_str
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = RobitailleGrid(machine='hpg', transform=False, par_norm=False,
                              subset=geoname, image_norm='image',)
 
-    model = load_wandb_run(wandb_str, basepath=basepath)
+    parnames = np.load(f'{basepath}/{geoname}_parnames.npy')
+    npars = len(parnames)
+    
+    model = load_wandb_run(wandb_str, basepath=basepath, npars=npars)
 
     all_predictions, all_params = load_predictions(model, dataset)
 
